@@ -1,0 +1,15 @@
+*.swp
+/build_log
+/ssh.forward
+/takePhoto
+/signalTest
+/build
+/log
+/logs
+/ngrok_web_service
+/misc/repo_conf/distributions
+/http.polling.forward
+/input.event/
+/read.pipe
+*.csv
+
