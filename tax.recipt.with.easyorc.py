@@ -13,6 +13,42 @@ input_folder = "/mnt/largeDisk1/myOwnCompany/20240801_receipts/"  # Replace with
 tmp_path = "/home/yep/Python/yep/tax_receips/logs/tmp.jpg"
 failure_folder = "Swimming_failure"
 
+def get_incremented_file_path(file_path):
+    """
+    Check the input file path and return an incremented file path if the file already exists.
+
+    :param file_path: Original file path to check.
+    :return: A new file path with an incremented number if the file exists.
+    """
+    directory, filename = os.path.split(file_path)
+    name, ext = os.path.splitext(filename)
+
+    # Regex to find an existing number at the end of the filename
+    pattern = r"^(.*?)(_\d{2})?$"
+    match = re.match(pattern, name)
+
+    if match:
+        base_name = match.group(1)  # The main part of the filename
+        number = match.group(2)    # The existing number (if any)
+
+        # Start incrementing from 1 if no number exists
+        if number is None:
+            increment = 1
+        else:
+            increment = int(number[1:]) + 1
+
+        # Generate a new filename with the incremented number
+        while True:
+            new_name = f"{base_name}_{increment:02}{ext}"
+            new_file_path = os.path.join(directory, new_name)
+            if not os.path.exists(new_file_path):
+                return new_file_path
+            increment += 1
+
+    # If no match, return the original file path
+    return file_path
+
+
 def move_deskew_file_to_folder(file_path, destination_folder_name):
     """
     Moves a file to a destination folder, creating the folder if it doesn't exist.
@@ -220,7 +256,11 @@ def process_file(file_path):
                             name, ext = os.path.splitext(filename)
                             new_name = f"{formatted_date}_swimming{ext}"
                             new_path = os.path.join(input_folder, new_name)
-                            os.rename(file_path, new_path)
+
+                            # increase the version number if a file exist already
+                            filename_with_version = get_incremented_file_path(new_path):
+
+                            os.rename(file_path, filename_with_version)
                             print(f"File renamed to {new_name}")
 
                         else:
