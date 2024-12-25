@@ -8,7 +8,8 @@ import shutil
 
 # Define the input folder containing scanned receipts and the output CSV file
 #input_folder = "/mnt/largeDisk1/myOwnCompany/20240801_receipts/"  # Replace with your folder path
-input_folder = "/home/yep/Python/yep/tax_receips/logs/input_receipts/"  # Replace with your folder path
+input_folder = "/mnt/largeDisk1/myOwnCompany/20240801_receipts/no_good/"  # Replace with your folder path
+#input_folder = "/home/yep/Python/yep/tax_receips/logs/input_receipts/"  # Replace with your folder path
 #output_csv = "receipts_content.csv"  # Output CSV file name
 tmp_path = "/home/yep/Python/yep/tax_receips/logs/tmp.jpg"
 failure_folder = "Swimming_failure"
@@ -72,25 +73,33 @@ def move_deskew_file_to_folder(file_path, destination_folder_name):
     :param destination_folder_name: Name of the folder to move the file into.
     """
     # Extract the directory of the input file
+    #print(f"move_deskew_file_to_folder()>> file_path: {file_path}")
+    #print(f"move_deskew_file_to_folder()>> destination_folder_name: {destination_folder_name}")
     base_dir = os.path.dirname(file_path)
 
     # Create the full path for the destination folder
     destination_folder_path = os.path.join(base_dir, destination_folder_name)
 
+    #print(f"move_deskew_file_to_folder()>> destination_folder_path: {destination_folder_path}")
     # Create the destination folder if it doesn't exist
     if not os.path.exists(destination_folder_path):
         os.makedirs(destination_folder_path)
 
-    name, ext = os.path.splitext(file_path)
+    base_filename = os.path.basename(file_path)
 
-    new_filename = f"{name}_deskew{ext}"
-    new_file_path = os.path.join(destination_folder_path, new_filename)
+    name, ext = os.path.splitext(base_filename)
+
+    dest_base_filename = f"{name}_deskew{ext}"
+    #print(f"move_deskew_file_to_folder()>> before join: destination_folder_path: {destination_folder_path}")
+    #print(f"move_deskew_file_to_folder()>> before join: dest_base_filename: {dest_base_filename}")
+    dest_file_path = os.path.join(destination_folder_path, dest_base_filename)
+    #print(f"move_deskew_file_to_folder()>> after join: dest_file_path: {dest_file_path}")
 
     # Move the file to the destination folder
-    #os.rename(tmp_path, new_file_path)
-    shutil.move(tmp_path, new_file_path)
+    #os.rename(tmp_path, dest_file_path)
+    shutil.move(tmp_path, dest_file_path)
 
-    print(f"Moved deskewed file to {new_file_path}")
+    print(f"Moved deskewed file to {dest_file_path}")
 
 
 
@@ -186,8 +195,8 @@ def check_file_pattern(file_path):
     file_name = file_path.split('/')[-1]  # Handles Unix-style paths
     
     # Regex for the pattern `YYYYMMDDHHMM_number.ext`
-#    pattern = r"^\d{12}_\d{1,2}\.[a-zA-Z]{3,4}$"
-    pattern = r"^\d{12}_\d{1,2}_swimming_swimming\.[a-zA-Z]{3,4}$"
+    pattern = r"^\d{12}_\d{1,2}\.[a-zA-Z]{3,4}$"
+   # pattern = r"^\d{12}_\d{1,2}_swimming_swimming\.[a-zA-Z]{3,4}$"
 
     # Match the pattern
     return bool(re.match(pattern, file_name))
