@@ -7,8 +7,8 @@ import numpy as np
 import shutil
 
 # Define the input folder containing scanned receipts and the output CSV file
-input_folder = "/mnt/largeDisk1/myOwnCompany/20240801_receipts/"  # Replace with your folder path
-#input_folder = "/home/yep/Python/yep/tax_receips/logs/input_receipts/"  # Replace with your folder path
+#input_folder = "/mnt/largeDisk1/myOwnCompany/20240801_receipts/"  # Replace with your folder path
+input_folder = "/home/yep/Python/yep/tax_receips/logs/input_receipts/"  # Replace with your folder path
 #output_csv = "receipts_content.csv"  # Output CSV file name
 tmp_path = "/home/yep/Python/yep/tax_receips/logs/tmp.jpg"
 failure_folder = "Swimming_failure"
@@ -20,6 +20,14 @@ def get_incremented_file_path(file_path):
     :param file_path: Original file path to check.
     :return: A new file path with an incremented number if the file exists.
     """
+
+    print(f"Input file_path:  {file_path}")
+    if not os.path.exists(file_path):
+           print(f"Input file_path not exist, return immediatly")
+           return file_path
+    else:
+           print(f"Input file_path exist")
+
     directory, filename = os.path.split(file_path)
     name, ext = os.path.splitext(filename)
 
@@ -47,6 +55,13 @@ def get_incremented_file_path(file_path):
 
     # If no match, return the original file path
     return file_path
+
+def make_renamed_file(file_path, new_path):
+    # increase the version number if a file exist already
+    filename_with_version = get_incremented_file_path(new_path)
+
+    os.rename(file_path, filename_with_version)
+    print(f"File renamed to {filename_with_version}")
 
 
 def move_deskew_file_to_folder(file_path, destination_folder_name):
@@ -231,8 +246,7 @@ def process_file(file_path):
                         name, ext = os.path.splitext(filename)
                         new_name = f"{formatted_date}_swimming{ext}"
                         new_path = os.path.join(input_folder, new_name)
-                        os.rename(file_path, new_path)
-                        print(f"File renamed to {new_name}")
+                        make_renamed_file(file_path,new_path)
                     else : 
                         deskew_image(file_path, tmp_path)
 
@@ -257,11 +271,7 @@ def process_file(file_path):
                             new_name = f"{formatted_date}_swimming{ext}"
                             new_path = os.path.join(input_folder, new_name)
 
-                            # increase the version number if a file exist already
-                            filename_with_version = get_incremented_file_path(new_path):
-
-                            os.rename(file_path, filename_with_version)
-                            print(f"File renamed to {new_name}")
+                            make_renamed_file(file_path, new_path)
 
                         else:
                             # Rename the file by appending '_swimming' before the file extension
@@ -289,6 +299,8 @@ def process_receipts(input_folder):
             if  check_file_pattern(file_path):
                 print(f"Processing {file_path}...")
                 process_file(file_path)
+
+            process_file(file_path)
 
 process_receipts(input_folder)
 
