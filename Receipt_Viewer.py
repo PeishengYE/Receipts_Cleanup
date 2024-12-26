@@ -20,6 +20,7 @@ class ReceiptViewer(QMainWindow):
         self.zoom_factor = 1.0
         self.pan_offset = QPoint(0, 0)
         self.last_mouse_pos = None
+        self.last_image_label_height = 0
 
         self.init_ui()
         self.showFullScreen()
@@ -110,7 +111,18 @@ class ReceiptViewer(QMainWindow):
         label_width = self.image_label.width()
         label_height = self.image_label.height()
         print(f"Image label width: {label_width}")
+
         print(f"Image label height: {label_height}")
+        print(f"Prev Image label height : {self.last_image_label_height}")
+
+        height_diff =  label_height - self.last_image_label_height 
+        print(f"Image label height changed with different: {height_diff}")
+
+        if height_diff > 0 and height_diff < 3:
+            print(f"Image label height changed, keep it to the previous value")
+            label_height = self.last_image_label_height
+
+        self.last_image_label_height = label_height
 
         pixmap_width = pixmap.width()
         pixmap_height = pixmap.height()
