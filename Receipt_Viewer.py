@@ -85,12 +85,12 @@ class ReceiptViewer(QMainWindow):
             ]
             self.image_files.sort()
             self.current_index = 0
-            self.show_image()
+            self.show_image(True)
 
 
 
 
-    def show_image(self):
+    def show_image(self, just_load):
         if not self.image_files:
             self.image_label.setText("No Images Found")
             return
@@ -103,7 +103,8 @@ class ReceiptViewer(QMainWindow):
         if pixmap.isNull():
             self.image_label.setText("Failed to load image")
         else:
-            self.zoom_factor = self.calculate_fit_zoom(pixmap)
+            if just_load:
+                self.zoom_factor = self.calculate_fit_zoom(pixmap)
             self.update_image_display(pixmap)
 
     def calculate_fit_zoom(self, pixmap):
@@ -147,13 +148,13 @@ class ReceiptViewer(QMainWindow):
         if self.image_files:
             self.current_index = (self.current_index - 1) % len(self.image_files)
             self.reset_zoom_and_pan()
-            self.show_image()
+            self.show_image(True)
 
     def show_next_image(self):
         if self.image_files:
             self.current_index = (self.current_index + 1) % len(self.image_files)
             self.reset_zoom_and_pan()
-            self.show_image()
+            self.show_image(True)
 
     def toggle_fullscreen(self):
         if self.isFullScreen():
@@ -173,7 +174,7 @@ class ReceiptViewer(QMainWindow):
             self.zoom_factor *= 1.1
         else:
             self.zoom_factor /= 1.1
-        self.show_image()
+        self.show_image(False)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -184,7 +185,7 @@ class ReceiptViewer(QMainWindow):
             delta = event.pos() - self.last_mouse_pos
             self.pan_offset += delta
             self.last_mouse_pos = event.pos()
-            self.show_image()
+            self.show_image(False)
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.LeftButton:
