@@ -18,6 +18,10 @@ class ReceiptViewer(QMainWindow):
         self.current_index = 0
         self.image_files = []
         self.zoom_factor = 1.0
+        self.max_zoom_factor = 0.4
+        self.min_zoom_factor = 0.2
+        self.prev_next_button_pressed = False
+
         self.pan_offset = QPoint(0, 0)
         self.last_mouse_pos = None
         self.last_image_label_height = 0
@@ -105,6 +109,7 @@ class ReceiptViewer(QMainWindow):
         else:
             if just_load:
                 self.zoom_factor = self.calculate_fit_zoom(pixmap)
+                self.max_zoom_factor = self.zoom_factor
             self.update_image_display(pixmap)
 
     def calculate_fit_zoom(self, pixmap):
@@ -131,7 +136,10 @@ class ReceiptViewer(QMainWindow):
         width_ratio = label_width / pixmap_width
         height_ratio = label_height / pixmap_height
 
-        return min(width_ratio, height_ratio)
+        zoom_factor_calculated = min(width_ratio, height_ratio)
+
+        return zoom_factor_calculated
+        
 
 
     def update_image_display(self, pixmap):
@@ -140,6 +148,13 @@ class ReceiptViewer(QMainWindow):
             Qt.KeepAspectRatio,
             Qt.SmoothTransformation
         )
+        scaled_pixmap_width = scaled_pixmap.width()
+        scaled_pixmap_height = scaled_pixmap.height()
+
+        print(f"update_image_display()>> Scaled_Pixmap zoom_factor: {self.zoom_factor}")
+        print(f"update_image_display()>> Scaled_Pixmap width: {scaled_pixmap_width}")
+        print(f"update_image_display()>> Scaled_Pixmap height: {scaled_pixmap_height}")
+
         self.image_label.setPixmap(scaled_pixmap)
         self.image_label.setAlignment(Qt.AlignCenter)
         self.image_label.move(self.pan_offset)
@@ -174,6 +189,13 @@ class ReceiptViewer(QMainWindow):
             self.zoom_factor *= 1.1
         else:
             self.zoom_factor /= 1.1
+
+        if self.zoom_factor > self.max_zoom_factor:
+           self.zoom_factor = self.max_zoom_factor
+
+        if self.zoom_factor < self.min_zoom_factor: 
+           self.zoom_factor = self.min_zoom_factor
+
         self.show_image(False)
 
     def mousePressEvent(self, event):
