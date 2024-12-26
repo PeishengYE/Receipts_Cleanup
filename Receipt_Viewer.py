@@ -1,7 +1,8 @@
 import sys
 import os
 from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QLineEdit, QWidget, QFileDialog, QMenuBar
+    QApplication, QMainWindow, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QLineEdit, QWidget, QFileDialog, QMenuBar, QCheckBox,
+ QFormLayout
 )
 from PyQt5.QtGui import QPixmap, QImageReader, QMouseEvent
 from PyQt5.QtCore import Qt, QPoint
@@ -53,18 +54,53 @@ class ReceiptViewer(QMainWindow):
         self.next_button.clicked.connect(self.show_next_image)
         self.exit_button.clicked.connect(self.close_application)
 
+        ############################################################
         self.rename_input = QLineEdit()
         self.rename_input.setPlaceholderText("Enter new name for current image")
         self.rename_button = QPushButton("OK")
         self.rename_button.clicked.connect(self.rename_and_next)
 
+        self.control_buttons_widget_container = QWidget(self)
+
+        ############################################################
+
+        outerLayout = QVBoxLayout()
+        # Create a form layout for the label and line edit
+        topLayout = QFormLayout()
+        # Add a label and a line edit to the form layout
+        topLayout.addRow("Some Text:", QLineEdit())
+        # Create a layout for the checkboxes
+        optionsLayout = QVBoxLayout()
+        # Add some checkboxes to the layout
+        optionsLayout.addWidget(QCheckBox("Option one"))
+        optionsLayout.addWidget(QCheckBox("Option two"))
+        optionsLayout.addWidget(QCheckBox("Option three"))
+        # Nest the inner layouts into the outer layout
+        outerLayout.addLayout(topLayout)
+        outerLayout.addLayout(optionsLayout)
+
+
         edit_buttons_layout = QHBoxLayout()
         edit_buttons_layout.addWidget(self.rename_input)
         edit_buttons_layout.addWidget(self.rename_button)
 
+        outerLayout.addLayout(edit_buttons_layout)
+
+        # Set the window's main layout
+        self.control_buttons_widget_container.setLayout(outerLayout)
+
+
+
+
+
+        ############################################################
+
+
+
+
         center_layout = QHBoxLayout()
         center_layout.addWidget(self.image_label, stretch=1)
-        center_layout.addLayout(edit_buttons_layout)
+        center_layout.addWidget(self.control_buttons_widget_container, stretch=0)
 
         self.center_horizental_widget_container = QWidget(self)
         self.center_horizental_widget_container.setLayout(center_layout)
