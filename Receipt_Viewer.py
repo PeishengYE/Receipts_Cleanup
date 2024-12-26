@@ -1,7 +1,7 @@
 import sys
 import os
 from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QFileDialog, QMenuBar
+    QApplication, QMainWindow, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QLineEdit, QWidget, QFileDialog, QMenuBar
 )
 from PyQt5.QtGui import QPixmap, QImageReader, QMouseEvent
 from PyQt5.QtCore import Qt, QPoint
@@ -40,6 +40,7 @@ class ReceiptViewer(QMainWindow):
         self.filename_label = QLabel("", self)
         self.filename_label.setAlignment(Qt.AlignCenter)
         self.filename_label.setStyleSheet("font-size: 16px; font-weight: bold;")
+        self.filename_label.setWordWrap(True)
 
         self.image_label = QLabel("No Image Loaded", self)
         self.image_label.setAlignment(Qt.AlignCenter)
@@ -52,17 +53,34 @@ class ReceiptViewer(QMainWindow):
         self.next_button.clicked.connect(self.show_next_image)
         self.exit_button.clicked.connect(self.close_application)
 
-        button_layout = QHBoxLayout()
-        button_layout.addWidget(self.prev_button)
-        button_layout.addWidget(self.next_button)
-        button_layout.addWidget(self.exit_button)
+        self.rename_input = QLineEdit()
+        self.rename_input.setPlaceholderText("Enter new name for current image")
+        self.rename_button = QPushButton("OK")
+        self.rename_button.clicked.connect(self.rename_and_next)
 
-        layout = QVBoxLayout()
-        layout.addWidget(self.filename_label)
-        layout.addWidget(self.image_label, stretch=1)
-        layout.addLayout(button_layout)
+        edit_buttons_layout = QHBoxLayout()
+        edit_buttons_layout.addWidget(self.rename_input)
+        edit_buttons_layout.addWidget(self.rename_button)
 
-        self.central_widget.setLayout(layout)
+        center_layout = QHBoxLayout()
+        center_layout.addWidget(self.image_label, stretch=1)
+        center_layout.addLayout(edit_buttons_layout)
+
+        self.center_horizental_widget_container = QWidget(self)
+        self.center_horizental_widget_container.setLayout(center_layout)
+
+
+        next_prev_layout = QHBoxLayout()
+        next_prev_layout.addWidget(self.prev_button)
+        next_prev_layout.addWidget(self.next_button)
+        next_prev_layout.addWidget(self.exit_button)
+
+        main_layout = QVBoxLayout()
+        main_layout.addWidget(self.filename_label)
+        main_layout.addWidget(self.center_horizental_widget_container, stretch = 4)
+        main_layout.addLayout(next_prev_layout, stretch = 1)
+
+        self.central_widget.setLayout(main_layout)
 
         self.menu_bar = self.menuBar()
         self.menubar = self.menu_bar.addMenu("Recipt Folder")
@@ -170,6 +188,24 @@ class ReceiptViewer(QMainWindow):
             self.current_index = (self.current_index + 1) % len(self.image_files)
             self.reset_zoom_and_pan()
             self.show_image(True)
+
+    def rename_and_next(self):
+        new_name = self.rename_input.text().strip()
+        if new_name:
+            current_path = self.image_files[self.current_index]
+            folder = os.path.dirname(current_path)
+            new_path = os.path.join(folder, new_name)
+            if not new_path.lower().endswith(('.jpg', '.jpeg', '.png')):
+                new_path += os.path.splitext(current_path)[1]  # Preserve original extension
+
+            try:
+                os.rename(current_path, new_path)
+                self.image_files[self.current_index] = new_path
+                self.rename_input.clear()
+                self.show_next_image()
+            except Exception as e:
+                print(f"Error renaming file: {e}")
+
 
     def toggle_fullscreen(self):
         if self.isFullScreen():
