@@ -102,7 +102,24 @@ class ReceiptViewer(QMainWindow):
         if pixmap.isNull():
             self.image_label.setText("Failed to load image")
         else:
+            self.zoom_factor = self.calculate_fit_zoom(pixmap)
             self.update_image_display(pixmap)
+
+    def calculate_fit_zoom(self, pixmap):
+        # Calculate the zoom factor to fit the image within the QLabel
+        label_width = self.image_label.width()
+        label_height = self.image_label.height()
+        print(f"Image label width: {label_width}")
+        print(f"Image label height: {label_height}")
+
+        pixmap_width = pixmap.width()
+        pixmap_height = pixmap.height()
+
+        width_ratio = label_width / pixmap_width
+        height_ratio = label_height / pixmap_height
+
+        return min(width_ratio, height_ratio)
+
 
     def update_image_display(self, pixmap):
         scaled_pixmap = pixmap.scaled(
