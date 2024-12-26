@@ -22,6 +22,10 @@ class ReceiptViewer(QMainWindow):
         self.last_mouse_pos = None
 
         self.init_ui()
+        self.showFullScreen()
+
+        self.load_folder(default_folder)
+
 
         
     def init_ui(self):
@@ -64,24 +68,15 @@ class ReceiptViewer(QMainWindow):
         fullscreen_action = self.menubar.addAction("Toggle Fullscreen")
         fullscreen_action.triggered.connect(self.toggle_fullscreen)
 
-        folder_path = default_folder 
-
-        if folder_path:
-            self.image_files = [
-                os.path.join(folder_path, f)
-                for f in os.listdir(folder_path)
-                if f.lower().endswith((".jpg", ".jpeg", ".png"))
-            ]
-            self.image_files.sort()
-            self.current_index = 0
-            self.show_image()
-
-
-
+        
     def open_folder(self):
         folder_path = QFileDialog.getExistingDirectory(self, "Select Folder with Receipts")
 
         if folder_path:
+            self.load_folder(folder_path)
+
+    def load_folder(self, folder_path):
+        if folder_path:
             self.image_files = [
                 os.path.join(folder_path, f)
                 for f in os.listdir(folder_path)
@@ -90,6 +85,7 @@ class ReceiptViewer(QMainWindow):
             self.image_files.sort()
             self.current_index = 0
             self.show_image()
+
 
 
 
