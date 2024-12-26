@@ -76,7 +76,7 @@ class ReceiptViewer(QMainWindow):
         next_prev_layout.addWidget(self.exit_button)
 
         main_layout = QVBoxLayout()
-        main_layout.addWidget(self.filename_label)
+        main_layout.addWidget(self.filename_label, stretch=0)
         main_layout.addWidget(self.center_horizental_widget_container, stretch = 4)
         main_layout.addLayout(next_prev_layout, stretch = 1)
 
