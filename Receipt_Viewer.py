@@ -1,5 +1,6 @@
 import sys
 import os
+import re
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QLineEdit, QWidget, QFileDialog, QMenuBar, QCheckBox,
  QFormLayout, QMessageBox, QRadioButton, QButtonGroup
@@ -151,6 +152,49 @@ class ReceiptViewer(QMainWindow):
         fullscreen_action = self.menubar.addAction("Toggle Fullscreen")
         fullscreen_action.triggered.connect(self.toggle_fullscreen)
 
+    def get_incremented_file_path(self, file_path):
+        """
+        Check the input file path and return an incremented file path if the file already exists.
+
+        :param file_path: Original file path to check.
+        :return: A new file path with an incremented number if the file exists.
+        """
+
+        print(f"Input file_path:  {file_path}")
+        if not os.path.exists(file_path):
+               print(f"Input file_path not exist, return immediatly")
+               return file_path
+        else:
+               print(f"Input file_path exist")
+
+        directory, filename = os.path.split(file_path)
+        name, ext = os.path.splitext(filename)
+
+        # Regex to find an existing number at the end of the filename
+        pattern = r"^(.*?)(_\d{2})?$"
+        match = re.match(pattern, name)
+
+        if match:
+            base_name = match.group(1)  # The main part of the filename
+            number = match.group(2)    # The existing number (if any)
+
+            # Start incrementing from 1 if no number exists
+            if number is None:
+                increment = 1
+            else:
+                increment = int(number[1:]) + 1
+
+            # Generate a new filename with the incremented number
+            while True:
+                new_name = f"{base_name}_{increment:02}{ext}"
+                new_file_path = os.path.join(directory, new_name)
+                if not os.path.exists(new_file_path):
+                    return new_file_path
+                increment += 1
+
+        # If no match, return the original file path
+        return file_path
+
     def validate_and_process_input(self):
         year = self.year_input.text().strip()
         date = self.date_input.text().strip()
@@ -171,10 +215,18 @@ class ReceiptViewer(QMainWindow):
 
         image_path = self.image_files[self.current_index]
         _no_use, imagename = os.path.split(image_path)
-        _no_use_name, image_ext = os.path.splitext(imagename)
+        directory_name, image_ext = os.path.splitext(imagename)
+
+        base_dir = os.path.dirname(image_path)
 
         filename = f"{year}_{date}_{selected_option.upper()}{image_ext}"
-        print(f"Filename:: {filename}")
+
+        file_path = os.path.join(base_dir , filename)
+        print(f"validate_and_process_input()>> :: file_path of required filename:  {file_path}")
+
+        filename = os.path.basename(self.get_incremented_file_path(file_path))
+        print(f"validate_and_process_input()>> :: after verifying available filename: required filename:  {filename}")
+
 
          # Show confirmation dialog
         confirmed = self.show_confirmation_dialog(filename)
@@ -188,7 +240,7 @@ class ReceiptViewer(QMainWindow):
         msg_box = QMessageBox()
         msg_box.setIcon(QMessageBox.Question)
         msg_box.setWindowTitle("Confirm")
-        msg_box.setText(f"Are you sure you want to process this file?\n{filename}")
+        msg_box.setText(f"Rename the current file to \n{filename}")
         msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         response = msg_box.exec_()
         return response == QMessageBox.Yes
