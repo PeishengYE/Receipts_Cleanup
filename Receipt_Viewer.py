@@ -2,7 +2,7 @@ import sys
 import os
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QLineEdit, QWidget, QFileDialog, QMenuBar, QCheckBox,
- QFormLayout
+ QFormLayout, QMessageBox, QRadioButton, QButtonGroup
 )
 from PyQt5.QtGui import QPixmap, QImageReader, QMouseEvent
 from PyQt5.QtCore import Qt, QPoint
@@ -63,30 +63,51 @@ class ReceiptViewer(QMainWindow):
         self.control_buttons_widget_container = QWidget(self)
 
         ############################################################
+        # Create a form layout for the label and line edit
+
+        self.year_input = QLineEdit()
+        self.date_input = QLineEdit()
+        self.index_input = QLineEdit()
+
+
+
+        topLayout = QFormLayout()
+        topLayout.addRow("YEAR:", self.year_input)
+        topLayout.addRow("DATE:", self.date_input)
+        topLayout.addRow("INDEX:", self.index_input)
+
+        # Option group with radio buttons
+        self.option_group = QButtonGroup(self)
+
+        self.radio_swimming = QRadioButton("Swimming")
+        self.radio_gas = QRadioButton("Gas")
+        self.radio_costco = QRadioButton("Costco")
+        self.radio_hotel = QRadioButton("Hotel")
+
+        self.option_group.addButton(self.radio_swimming)
+        self.option_group.addButton(self.radio_gas)
+        self.option_group.addButton(self.radio_costco)
+        self.option_group.addButton(self.radio_hotel)
+
+        self.radio_gas.setChecked(True)  # Set a default selection
+
+        optionLayout = QVBoxLayout()
+        optionLayout.addWidget(self.radio_swimming)
+        optionLayout.addWidget(self.radio_gas)
+        optionLayout.addWidget(self.radio_costco)
+        optionLayout.addWidget(self.radio_hotel)
+
+        self.ok_button = QPushButton("OK")
+        self.ok_button.clicked.connect(self.validate_and_process_input)
 
         outerLayout = QVBoxLayout()
-        # Create a form layout for the label and line edit
-        topLayout = QFormLayout()
-        # Add a label and a line edit to the form layout
-        topLayout.addRow("Some Text:", QLineEdit())
-        # Create a layout for the checkboxes
-        optionsLayout = QVBoxLayout()
-        # Add some checkboxes to the layout
-        optionsLayout.addWidget(QCheckBox("Option one"))
-        optionsLayout.addWidget(QCheckBox("Option two"))
-        optionsLayout.addWidget(QCheckBox("Option three"))
-        # Nest the inner layouts into the outer layout
         outerLayout.addLayout(topLayout)
-        outerLayout.addLayout(optionsLayout)
+        outerLayout.addLayout(optionLayout)
+        outerLayout.addWidget(self.ok_button)
 
 
-        edit_buttons_layout = QHBoxLayout()
-        edit_buttons_layout.addWidget(self.rename_input)
-        edit_buttons_layout.addWidget(self.rename_button)
 
-        outerLayout.addLayout(edit_buttons_layout)
-
-        # Set the window's main layout
+         # Set the window's main layout
         self.control_buttons_widget_container.setLayout(outerLayout)
 
 
@@ -126,6 +147,53 @@ class ReceiptViewer(QMainWindow):
 
         fullscreen_action = self.menubar.addAction("Toggle Fullscreen")
         fullscreen_action.triggered.connect(self.toggle_fullscreen)
+
+    def validate_and_process_input(self):
+        year = self.year_input.text().strip()
+        date = self.date_input.text().strip()
+
+        if not self.is_valid_year(year):
+            self.show_warning("YEAR must be 2024 or 2025.")
+            return
+
+        if not self.is_valid_date(date):
+            self.show_warning("DATE must be in MMDD format (e.g., 1122 for November 22).")
+            return
+
+        # Get selected option
+        selected_option = self.get_selected_option()
+        if not selected_option:
+            self.show_warning("Please select an option.")
+            return
+
+        print(f"{year}_{date}_{selected_option.upper()}.jpeg")
+
+    def get_selected_option(self):
+        if self.radio_swimming.isChecked():
+            return "Swimming"
+        elif self.radio_gas.isChecked():
+            return "Gas"
+        elif self.radio_costco.isChecked():
+            return "Costco"
+        elif self.radio_hotel.isChecked():
+            return "Hotel"
+        return None
+
+    @staticmethod
+    def is_valid_year(year):
+        return year in {"2024", "2025"}
+
+    @staticmethod
+    def is_valid_date(date):
+        if len(date) != 4 or not date.isdigit():
+            return False
+
+        month, day = int(date[:2]), int(date[2:])
+        return 1 <= month <= 12 and 1 <= day <= 31
+
+    def show_warning(self, message):
+        QMessageBox.warning(self, "Invalid Input", message)
+
 
         
     def open_folder(self):
