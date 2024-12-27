@@ -67,14 +67,14 @@ class ReceiptViewer(QMainWindow):
 
         self.year_input = QLineEdit()
         self.date_input = QLineEdit()
-        self.index_input = QLineEdit()
+        self.amount_input = QLineEdit()
 
 
 
         topLayout = QFormLayout()
         topLayout.addRow("YEAR:", self.year_input)
         topLayout.addRow("DATE:", self.date_input)
-        topLayout.addRow("INDEX:", self.index_input)
+        topLayout.addRow("AMOUNT:", self.amount_input)
 
         # Option group with radio buttons
         self.option_group = QButtonGroup(self)
@@ -83,21 +83,24 @@ class ReceiptViewer(QMainWindow):
         self.radio_gas = QRadioButton("Gas")
         self.radio_costco = QRadioButton("Costco")
         self.radio_hotel = QRadioButton("Hotel")
+        self.radio_unknown = QRadioButton("Unknown")
 
         self.option_group.addButton(self.radio_swimming)
         self.option_group.addButton(self.radio_gas)
         self.option_group.addButton(self.radio_costco)
         self.option_group.addButton(self.radio_hotel)
+        self.option_group.addButton(self.radio_unknown)
 
-        self.radio_gas.setChecked(True)  # Set a default selection
+        self.radio_unknown.setChecked(True)  # Set a default selection
 
         optionLayout = QVBoxLayout()
         optionLayout.addWidget(self.radio_swimming)
         optionLayout.addWidget(self.radio_gas)
         optionLayout.addWidget(self.radio_costco)
         optionLayout.addWidget(self.radio_hotel)
+        optionLayout.addWidget(self.radio_unknown)
 
-        self.ok_button = QPushButton("OK")
+        self.ok_button = QPushButton("Rename File")
         self.ok_button.clicked.connect(self.validate_and_process_input)
 
         outerLayout = QVBoxLayout()
@@ -166,7 +169,25 @@ class ReceiptViewer(QMainWindow):
             self.show_warning("Please select an option.")
             return
 
-        print(f"{year}_{date}_{selected_option.upper()}.jpeg")
+        filename = f"{year}_{date}_{selected_option.upper()}_.jpeg"
+        print(f"Filename:: {year}_{date}_{selected_option.upper()}_.jpeg")
+
+         # Show confirmation dialog
+        confirmed = self.show_confirmation_dialog(filename)
+        if confirmed:
+            print("Great! Let's rename it")
+        else:
+            print("No change")
+
+    def show_confirmation_dialog(self, filename):
+        msg_box = QMessageBox()
+        msg_box.setIcon(QMessageBox.Question)
+        msg_box.setWindowTitle("Confirm")
+        msg_box.setText(f"Are you sure you want to process this file?\n{filename}")
+        msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        response = msg_box.exec_()
+        return response == QMessageBox.Yes
+
 
     def get_selected_option(self):
         if self.radio_swimming.isChecked():
@@ -177,6 +198,8 @@ class ReceiptViewer(QMainWindow):
             return "Costco"
         elif self.radio_hotel.isChecked():
             return "Hotel"
+        elif self.radio_unknown.isChecked():
+            return "Unknown"
         return None
 
     @staticmethod
