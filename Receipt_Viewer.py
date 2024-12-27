@@ -57,7 +57,7 @@ class ReceiptViewer(QMainWindow):
 
         ############################################################
         self.rename_input = QLineEdit()
-        self.rename_input.setPlaceholderText("Enter new name for current image")
+        self.rename_input.setPlaceholderText("Enter description")
         self.rename_button = QPushButton("OK")
         self.rename_button.clicked.connect(self.rename_and_next)
 
@@ -67,8 +67,10 @@ class ReceiptViewer(QMainWindow):
         # Create a form layout for the label and line edit
 
         self.year_input = QLineEdit()
+        self.year_input.setText("2024") 
         self.date_input = QLineEdit()
         self.amount_input = QLineEdit()
+        self.description_input = QLineEdit("EX. Restaurant")
 
 
 
@@ -76,42 +78,92 @@ class ReceiptViewer(QMainWindow):
         topLayout.addRow("YEAR:", self.year_input)
         topLayout.addRow("DATE:", self.date_input)
         topLayout.addRow("AMOUNT:", self.amount_input)
+        topLayout.addRow("DESC (NO SPACE): ", self.description_input)
 
-        # Option group with radio buttons
-        self.option_group = QButtonGroup(self)
+        #############################################
+        # Description Option group with radio buttons
+        self.desc_option_group = QButtonGroup(self)
 
         self.radio_swimming = QRadioButton("Swimming")
+        self.radio_walmart = QRadioButton("Walmart")
         self.radio_gas = QRadioButton("Gas")
         self.radio_costco = QRadioButton("Costco")
         self.radio_hotel = QRadioButton("Hotel")
         self.radio_unknown = QRadioButton("Unknown")
+        self.radio_from_input = QRadioButton("From recepit description")
 
-        self.option_group.addButton(self.radio_swimming)
-        self.option_group.addButton(self.radio_gas)
-        self.option_group.addButton(self.radio_costco)
-        self.option_group.addButton(self.radio_hotel)
-        self.option_group.addButton(self.radio_unknown)
+        self.desc_option_group.addButton(self.radio_swimming)
+        self.desc_option_group.addButton(self.radio_gas)
+        self.desc_option_group.addButton(self.radio_costco)
+        self.desc_option_group.addButton(self.radio_hotel)
+        self.desc_option_group.addButton(self.radio_walmart)
+        self.desc_option_group.addButton(self.radio_from_input)
+        self.desc_option_group.addButton(self.radio_unknown)
 
         self.radio_unknown.setChecked(True)  # Set a default selection
 
-        optionLayout = QVBoxLayout()
-        optionLayout.addWidget(self.radio_swimming)
-        optionLayout.addWidget(self.radio_gas)
-        optionLayout.addWidget(self.radio_costco)
-        optionLayout.addWidget(self.radio_hotel)
-        optionLayout.addWidget(self.radio_unknown)
+        optionDescLayout = QVBoxLayout()
+        optionDescLayout.addWidget(self.radio_swimming)
+        optionDescLayout.addWidget(self.radio_gas)
+        optionDescLayout.addWidget(self.radio_costco)
+        optionDescLayout.addWidget(self.radio_hotel)
+        optionDescLayout.addWidget(self.radio_walmart)
+        optionDescLayout.addWidget(self.radio_from_input)
+        optionDescLayout.addWidget(self.radio_unknown)
 
-        self.ok_button = QPushButton("Rename File")
-        self.ok_button.clicked.connect(self.validate_and_process_input)
+        #############################################
+        ############   CATEGORY OPTION ##############
+        #############################################
+        self.category_option_group = QButtonGroup(self)
+        self.radio_computer = QRadioButton("Computer expenses")
+        self.radio_professional = QRadioButton("Professional fee")
+        self.radio_tele = QRadioButton("Tele communication")
+        self.radio_adver = QRadioButton("advertising & promotion")
+        self.radio_membership = QRadioButton("membership")
+        self.radio_registration = QRadioButton("registration fee")
+        self.radio_incorporation = QRadioButton("Incorporation cost")
+        self.radio_parking = QRadioButton("Parking")
+        self.radio_travel = QRadioButton("Business travel")
+        self.radio_office = QRadioButton("Office supplies")
+        self.radio_training = QRadioButton("Training")
+        self.radio_meals = QRadioButton("Meals & entertainment")
+        self.radio_soft = QRadioButton("Software")
+
+        optionCategoryLayout = QVBoxLayout()
+        optionCategoryLayout.addWidget(self.radio_computer)
+        optionCategoryLayout.addWidget(self.radio_professional)
+        optionCategoryLayout.addWidget(self.radio_tele)
+        optionCategoryLayout.addWidget(self.radio_adver)
+        optionCategoryLayout.addWidget(self.radio_membership)
+        optionCategoryLayout.addWidget(self.radio_registration)
+        optionCategoryLayout.addWidget(self.radio_incorporation)
+        optionCategoryLayout.addWidget(self.radio_parking)
+        optionCategoryLayout.addWidget(self.radio_travel)
+        optionCategoryLayout.addWidget(self.radio_office)
+        optionCategoryLayout.addWidget(self.radio_training)
+        optionCategoryLayout.addWidget(self.radio_meals)
+        optionCategoryLayout.addWidget(self.radio_soft)
+
+
+
+        #############################################
+        ############   CATEGORY OPTION ##############
+        #############################################
+
+
+        self.rename_file_button = QPushButton("Rename File")
+        self.rename_file_button.clicked.connect(self.validate_and_process_input)
 
         outerLayout = QVBoxLayout()
         outerLayout.addLayout(topLayout)
-        outerLayout.addLayout(optionLayout)
-        outerLayout.addWidget(self.ok_button)
+        outerLayout.addLayout(optionDescLayout)
+
+        outerLayout.addWidget(self.rename_file_button)
+
+        outerLayout.addLayout(optionCategoryLayout)
 
 
 
-         # Set the window's main layout
         self.control_buttons_widget_container.setLayout(outerLayout)
 
 
@@ -208,8 +260,8 @@ class ReceiptViewer(QMainWindow):
             return
 
         # Get selected option
-        selected_option = self.get_selected_option()
-        if not selected_option:
+        selected_desc_option = self.get_selected_desc_option()
+        if not selected_desc_option:
             self.show_warning("Please select an option.")
             return
 
@@ -219,7 +271,7 @@ class ReceiptViewer(QMainWindow):
 
         base_dir = os.path.dirname(image_path)
 
-        filename = f"{year}_{date}_{selected_option.upper()}{image_ext}"
+        filename = f"{year}_{date}_{selected_desc_option.upper()}{image_ext}"
 
         file_path = os.path.join(base_dir , filename)
         print(f"validate_and_process_input()>> :: file_path of required filename:  {file_path}")
@@ -246,7 +298,7 @@ class ReceiptViewer(QMainWindow):
         return response == QMessageBox.Yes
 
 
-    def get_selected_option(self):
+    def get_selected_desc_option(self):
         if self.radio_swimming.isChecked():
             return "Swimming"
         elif self.radio_gas.isChecked():
@@ -255,6 +307,11 @@ class ReceiptViewer(QMainWindow):
             return "Costco"
         elif self.radio_hotel.isChecked():
             return "Hotel"
+        elif self.radio_walmart.isChecked():
+            return "Walmart"
+        elif self.radio_from_input.isChecked():
+            desc_input = self.description_input.text().strip()
+            return desc_input
         elif self.radio_unknown.isChecked():
             return "Unknown"
         return None
@@ -390,7 +447,7 @@ class ReceiptViewer(QMainWindow):
             self.image_files[self.current_index] = new_path
 
             # clear inputs
-            self.year_input.clear()
+            self.year_input.setText("2024") 
             self.date_input.clear()
             self.amount_input.clear()
             self.radio_unknown.setChecked(True)  # Set a default selection
