@@ -169,13 +169,18 @@ class ReceiptViewer(QMainWindow):
             self.show_warning("Please select an option.")
             return
 
-        filename = f"{year}_{date}_{selected_option.upper()}_.jpeg"
-        print(f"Filename:: {year}_{date}_{selected_option.upper()}_.jpeg")
+        image_path = self.image_files[self.current_index]
+        _no_use, imagename = os.path.split(image_path)
+        _no_use_name, image_ext = os.path.splitext(imagename)
+
+        filename = f"{year}_{date}_{selected_option.upper()}{image_ext}"
+        print(f"Filename:: {filename}")
 
          # Show confirmation dialog
         confirmed = self.show_confirmation_dialog(filename)
         if confirmed:
             print("Great! Let's rename it")
+            self.rename_and_next(filename)
         else:
             print("No change")
 
@@ -316,7 +321,34 @@ class ReceiptViewer(QMainWindow):
             self.reset_zoom_and_pan()
             self.show_image(True)
 
-    def rename_and_next(self):
+
+    def rename_and_next(self, new_filename):
+
+        current_path = self.image_files[self.current_index]
+        print(f"current_filename {current_path}")
+        print(f"new_filename {new_filename}")
+
+        folder = os.path.dirname(current_path)
+        new_path = os.path.join(folder, new_filename)
+        if not new_path.lower().endswith(('.jpg', '.jpeg', '.png')):
+            new_path += os.path.splitext(current_path)[1]  # Preserve original extension
+
+        try:
+            os.rename(current_path, new_path)
+            self.image_files[self.current_index] = new_path
+
+            # clear inputs
+            self.year_input.clear()
+            self.date_input.clear()
+            self.amount_input.clear()
+            self.radio_unknown.setChecked(True)  # Set a default selection
+
+            self.show_next_image()
+        except Exception as e:
+            print(f"Error renaming file: {e}")
+
+
+    def rename_and_next_2(self):
         new_name = self.rename_input.text().strip()
         if new_name:
             current_path = self.image_files[self.current_index]
