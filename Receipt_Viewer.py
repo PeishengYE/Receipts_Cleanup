@@ -1,5 +1,6 @@
 import sys
 import os
+import csv
 import re
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QLineEdit, QWidget, QFileDialog, QMenuBar, QCheckBox,
@@ -9,6 +10,9 @@ from PyQt5.QtGui import QPixmap, QImageReader, QMouseEvent
 from PyQt5.QtCore import Qt, QPoint
 
 default_folder = "/mnt/largeDisk1/work/tax_receipts_cleanup/20240801_receipts/"
+GST_RATE = 0.05
+QST_RATE = 0.09975
+
 
 class ReceiptViewer(QMainWindow):
     def __init__(self):
@@ -165,8 +169,19 @@ class ReceiptViewer(QMainWindow):
 
         outerLayout.addWidget(self.rename_file_button)
 
-        self.category_label = QLabel("CSV Report Category")
-        outerLayout.addWidget(self.category_label)
+        #self.category_label = QLabel("CSV Report Category")
+        #outerLayout.addWidget(self.category_label)
+        self.button_layout = QHBoxLayout()
+        self.calc_button = QPushButton("Calculate Taxes")
+        self.calc_button.clicked.connect(self.calculate_taxes)
+        self.button_layout.addWidget(self.calc_button)
+
+        self.report_button = QPushButton("Generate Report")
+        self.report_button.clicked.connect(self.generate_report)
+        self.button_layout.addWidget(self.report_button)
+
+        optionCategoryLayout.addLayout(self.button_layout)
+
 
         self.csv_report_group.setLayout(optionCategoryLayout)
         outerLayout.addWidget(self.csv_report_group)
@@ -212,6 +227,51 @@ class ReceiptViewer(QMainWindow):
 
         fullscreen_action = self.menubar.addAction("Toggle Fullscreen")
         fullscreen_action.triggered.connect(self.toggle_fullscreen)
+
+    def calculate_taxes(self):
+        try:
+            total_amount = float(self.amount.text())
+            gst = round(total_amount * GST_RATE / (1 + GST_RATE + QST_RATE), 2)
+            qst = round(total_amount * QST_RATE / (1 + GST_RATE + QST_RATE), 2)
+
+            self.tax_GST.setText(f"{gst:.2f}")
+            self.tax_QST.setText(f"{qst:.2f}")
+        except ValueError:
+            QMessageBox.warning(self, "Input Error", "Please enter a valid final amount.")
+
+    def is_valid_float(self, value):
+        try:
+            float(value)
+            return True
+        except ValueError:
+            return False
+
+    def generate_report(self):
+        date = self.date_input.text()
+        year = self.year_input.text()
+        description =  self.get_selected_desc_option()
+        try:
+            total_amount = float(self.amount.text())
+            gst_text = self.tax_GST.text().strip()
+            qst_text = self.tax_QST.text().strip()
+            gst = float(gst_text)
+            qst = float(qst_text)
+        except ValueError:
+            QMessageBox.warning(self, "Input Error", "Please enter a valid amount,GST,QST before generating the report.")
+            return
+
+        file_path, _ = QFileDialog.getSaveFileName(self, "Save Report", "", "CSV Files (*.csv)")
+
+        if file_path:
+            try:
+                with open(file_path, mode="a", newline="") as file:
+                    writer = csv.writer(file)
+                    writer.writerow([year, date, description, total_amount, gst, qst])
+
+                QMessageBox.information(self, "Success", "Report generated successfully!")
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Failed to save report: {str(e)}")
+
 
     def get_incremented_file_path(self, file_path):
         """
