@@ -10,6 +10,7 @@
 /misc/repo_conf/distributions
 /http.polling.forward
 /input.event/
+/__pycache__/
 /read.pipe
 *.csv
 
