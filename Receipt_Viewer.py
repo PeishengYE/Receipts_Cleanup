@@ -637,17 +637,25 @@ class ReceiptViewer(QMainWindow):
         self.image_label.setAlignment(Qt.AlignCenter)
         self.image_label.move(self.pan_offset)
 
-    def updateUI(self, receipt: Receipt):
-        date_str = str(receipt.date)
-        year = date_str[:4]
-        remaining = date_str[4:]
-        self.year_input.setText(year) 
-        self.date_input.setText(remaining)
-        self.amount.setText(str(receipt.amount_after_tax))
-        self.tax_GST.setText(str(receipt.gst))
-        self.tax_QST.setText(str(receipt.qst))
-        self.check_and_set_radio(receipt.description)
-        #self.radio_unknown.setChecked(True)  # Set a default selection
+    def updateUI(self,  receipt: Receipt):
+        if receipt:
+            date_str = str(receipt.date)
+            year = date_str[:4]
+            remaining = date_str[4:]
+            self.year_input.setText(year) 
+            self.date_input.setText(remaining)
+            self.amount.setText(str(receipt.amount_after_tax))
+            self.tax_GST.setText(str(receipt.gst))
+            self.tax_QST.setText(str(receipt.qst))
+            self.check_and_set_radio(receipt.description)
+        else:
+            self.year_input.clear() 
+            self.date_input.clear()
+            self.amount.clear()
+            self.tax_GST.clear()
+            self.tax_QST.clear()
+            self.description_input.setText("EX. Restaurant")
+            self.radio_unknown.setChecked(True)  # Set a default selection
 
 
     def updateUIWhenImageChanged(self):
@@ -663,6 +671,7 @@ class ReceiptViewer(QMainWindow):
              current_text = self.filename_label.text()
              updated_text = current_text + " (NEW)"
              self.filename_label.setText(updated_text)
+             self.updateUI(receipt)
              print(f"updateUIWhenImageChanged()>> This is a new image ")
 
 
