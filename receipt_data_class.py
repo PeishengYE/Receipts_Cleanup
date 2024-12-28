@@ -76,6 +76,18 @@ def calculate_list_hash(receipts: List[Receipt]) -> str:
         hash_obj.update(str(receipt).encode('utf-8'))
     return hash_obj.hexdigest()
 
+def get_md5sum(file_path: str) -> str:
+    hash_md5 = hashlib.md5()
+    try:
+        with open(file_path, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                hash_md5.update(chunk)
+        return hash_md5.hexdigest()
+    except FileNotFoundError:
+        return "File not found"
+    except Exception as e:
+        return f"Error: {e}"
+
 def monitor_and_save_receipts(receipts: List[Receipt], filename: str, interval: int = 5):
     last_hash = calculate_list_hash(receipts)
     while True:
@@ -93,4 +105,14 @@ def start_receipt_monitor_thread(receipts: List[Receipt], filename: str, interva
         daemon=True
     )
     monitor_thread.start()
+
+def get_receipt_by_file_md5(receipts: List[Receipt], file_path: str) -> Receipt:
+    file_md5 = get_md5sum(file_path)
+    if file_md5 == "File not found" or "Error" in file_md5:
+        print(file_md5)
+        return None
+    for receipt in receipts:
+        if receipt.file_md5 == file_md5:
+            return receipt
+    return None
 

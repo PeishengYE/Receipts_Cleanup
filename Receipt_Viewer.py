@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QPixmap, QImageReader, QMouseEvent
 from PyQt5.QtCore import Qt, QPoint
 from receipt_data_class import (
-    Receipt, add_receipt, load_receipts_from_csv, update_receipt, start_receipt_monitor_thread
+    Receipt, add_receipt, load_receipts_from_csv, update_receipt, start_receipt_monitor_thread,  get_receipt_by_file_md5
 )
 from category_dictionary import (
         get_cts_from_key, get_key_from_cts
@@ -601,25 +601,36 @@ class ReceiptViewer(QMainWindow):
         scaled_pixmap_width = scaled_pixmap.width()
         scaled_pixmap_height = scaled_pixmap.height()
 
-        print(f"update_image_display()>> Scaled_Pixmap zoom_factor: {self.zoom_factor}")
-        print(f"update_image_display()>> Scaled_Pixmap width: {scaled_pixmap_width}")
-        print(f"update_image_display()>> Scaled_Pixmap height: {scaled_pixmap_height}")
+        #print(f"update_image_display()>> Scaled_Pixmap zoom_factor: {self.zoom_factor}")
+        #print(f"update_image_display()>> Scaled_Pixmap width: {scaled_pixmap_width}")
+        #print(f"update_image_display()>> Scaled_Pixmap height: {scaled_pixmap_height}")
 
         self.image_label.setPixmap(scaled_pixmap)
         self.image_label.setAlignment(Qt.AlignCenter)
         self.image_label.move(self.pan_offset)
+
+    def updateUIWhenImageChanged(self):
+         image_path = self.image_files[self.current_index]
+         receipt = get_receipt_by_file_md5(self.receipt_list, image_path)
+         if receipt:
+             print(f"updateUIWhenImageChanged()>> This is an old image, Receipt found : {receipt}")
+         else:
+            print(f"updateUIWhenImageChanged()>> This is a new image ")
+
 
     def show_prev_image(self):
         if self.image_files:
             self.current_index = (self.current_index - 1) % len(self.image_files)
             self.reset_zoom_and_pan()
             self.show_image(True)
+            self.updateUIWhenImageChanged()
 
     def show_next_image(self):
         if self.image_files:
             self.current_index = (self.current_index + 1) % len(self.image_files)
             self.reset_zoom_and_pan()
             self.show_image(True)
+            self.updateUIWhenImageChanged()
 
 
     def rename_and_next(self, new_filename):
