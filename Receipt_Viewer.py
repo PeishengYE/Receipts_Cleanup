@@ -3,7 +3,7 @@ import os
 import re
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QLineEdit, QWidget, QFileDialog, QMenuBar, QCheckBox,
- QFormLayout, QMessageBox, QRadioButton, QButtonGroup
+ QFormLayout, QMessageBox, QRadioButton, QButtonGroup,QGroupBox 
 )
 from PyQt5.QtGui import QPixmap, QImageReader, QMouseEvent
 from PyQt5.QtCore import Qt, QPoint
@@ -69,7 +69,9 @@ class ReceiptViewer(QMainWindow):
         self.year_input = QLineEdit()
         self.year_input.setText("2024") 
         self.date_input = QLineEdit()
-        self.amount_input = QLineEdit()
+        self.amount = QLineEdit()
+        self.tax_GST = QLineEdit()
+        self.tax_QST = QLineEdit()
         self.description_input = QLineEdit("EX. Restaurant")
 
 
@@ -77,7 +79,9 @@ class ReceiptViewer(QMainWindow):
         topLayout = QFormLayout()
         topLayout.addRow("YEAR:", self.year_input)
         topLayout.addRow("DATE:", self.date_input)
-        topLayout.addRow("AMOUNT:", self.amount_input)
+        topLayout.addRow("Amount after GSTQST:", self.amount)
+        topLayout.addRow("TVP/GST:", self.tax_GST)
+        topLayout.addRow("TVQ/QST:", self.tax_QST)
         topLayout.addRow("DESC (NO SPACE): ", self.description_input)
 
         #############################################
@@ -129,6 +133,7 @@ class ReceiptViewer(QMainWindow):
         self.radio_meals = QRadioButton("Meals & entertainment")
         self.radio_soft = QRadioButton("Software")
 
+        self.csv_report_group = QGroupBox("CSV Report")
         optionCategoryLayout = QVBoxLayout()
         optionCategoryLayout.addWidget(self.radio_computer)
         optionCategoryLayout.addWidget(self.radio_professional)
@@ -160,7 +165,11 @@ class ReceiptViewer(QMainWindow):
 
         outerLayout.addWidget(self.rename_file_button)
 
-        outerLayout.addLayout(optionCategoryLayout)
+        self.category_label = QLabel("CSV Report Category")
+        outerLayout.addWidget(self.category_label)
+
+        self.csv_report_group.setLayout(optionCategoryLayout)
+        outerLayout.addWidget(self.csv_report_group)
 
 
 
