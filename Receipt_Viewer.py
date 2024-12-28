@@ -134,7 +134,7 @@ class ReceiptViewer(QMainWindow):
         self.desc_option_group.addButton(self.radio_from_input)
         self.desc_option_group.addButton(self.radio_unknown)
 
-        self.radio_unknown.setChecked(True)  # Set a default selection
+        self.radio_from_input.setChecked(True)  # Set a default selection
 
         optionDescLayout = QVBoxLayout()
         optionDescLayout.addWidget(self.radio_swimming)
@@ -330,6 +330,34 @@ class ReceiptViewer(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save report: {str(e)}")
 
+    def check_and_set_radio(self, input_string: str) -> None:
+        """
+        Checks if the input string matches an element in a predefined list.
+        If found, selects the corresponding radio button.
+        If not found, selects the "self.radio_from_input" and sets the input string in a QLineEdit.
+
+        Args:
+            input_string (str): The input string to check.
+            self: The object containing the radio buttons and QLineEdit.
+        """
+        # Predefined list and corresponding radio buttons
+        options = ["Swimming", "Walmart", "Gas", "Costco", "Hotel", "Unknown"]
+        radio_buttons = [
+            self.radio_swimming,
+            self.radio_walmart,
+            self.radio_gas,
+            self.radio_costco,
+            self.radio_hotel,
+            self.radio_unknown
+        ]
+
+        # Check if input string matches an option
+        if input_string in options:
+            index = options.index(input_string)
+            radio_buttons[index].setChecked(True)  # Check the corresponding radio button
+        else:
+            self.radio_from_input.setChecked(True)  # Check the fallback radio button
+            self.description_input.setText(input_string)  # Set the input string in the QLineEdit
 
 
     def get_incremented_file_path(self, file_path):
@@ -618,6 +646,7 @@ class ReceiptViewer(QMainWindow):
         self.amount.setText(str(receipt.amount_after_tax))
         self.tax_GST.setText(str(receipt.gst))
         self.tax_QST.setText(str(receipt.qst))
+        self.check_and_set_radio(receipt.description)
         #self.radio_unknown.setChecked(True)  # Set a default selection
 
 
