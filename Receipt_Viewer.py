@@ -609,13 +609,32 @@ class ReceiptViewer(QMainWindow):
         self.image_label.setAlignment(Qt.AlignCenter)
         self.image_label.move(self.pan_offset)
 
+    def updateUI(self, receipt: Receipt):
+        date_str = str(receipt.date)
+        year = date_str[:4]
+        remaining = date_str[4:]
+        self.year_input.setText(year) 
+        self.date_input.setText(remaining)
+        self.amount.setText(str(receipt.amount_after_tax))
+        self.tax_GST.setText(str(receipt.gst))
+        self.tax_QST.setText(str(receipt.qst))
+        #self.radio_unknown.setChecked(True)  # Set a default selection
+
+
     def updateUIWhenImageChanged(self):
          image_path = self.image_files[self.current_index]
          receipt = get_receipt_by_file_md5(self.receipt_list, image_path)
          if receipt:
+             current_text = self.filename_label.text()
+             updated_text = current_text + " (OLD)"
+             self.filename_label.setText(updated_text)
+             self.updateUI(receipt)
              print(f"updateUIWhenImageChanged()>> This is an old image, Receipt found : {receipt}")
          else:
-            print(f"updateUIWhenImageChanged()>> This is a new image ")
+             current_text = self.filename_label.text()
+             updated_text = current_text + " (NEW)"
+             self.filename_label.setText(updated_text)
+             print(f"updateUIWhenImageChanged()>> This is a new image ")
 
 
     def show_prev_image(self):
@@ -651,7 +670,7 @@ class ReceiptViewer(QMainWindow):
             # clear inputs
             self.year_input.setText("2024") 
             self.date_input.clear()
-            self.amount_input.clear()
+            self.amount.clear()
             self.radio_unknown.setChecked(True)  # Set a default selection
 
             self.show_next_image()
