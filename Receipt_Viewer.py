@@ -2,16 +2,25 @@ import sys
 import os
 import csv
 import re
+import hashlib
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QLineEdit, QWidget, QFileDialog, QMenuBar, QCheckBox,
  QFormLayout, QMessageBox, QRadioButton, QButtonGroup,QGroupBox 
 )
 from PyQt5.QtGui import QPixmap, QImageReader, QMouseEvent
 from PyQt5.QtCore import Qt, QPoint
+from receipt_data_class import (
+    Receipt, add_receipt, load_receipts_from_csv, update_receipt, start_receipt_monitor_thread
+)
+from category_dictionary import (
+        get_cts_from_key, get_key_from_cts
+    )
+
 
 default_folder = "/mnt/largeDisk1/work/tax_receipts_cleanup/20240801_receipts/"
 GST_RATE = 0.05
 QST_RATE = 0.09975
+csv_filename = "receipts.csv"
 
 
 class ReceiptViewer(QMainWindow):
@@ -36,6 +45,23 @@ class ReceiptViewer(QMainWindow):
         self.showFullScreen()
 
         self.load_folder(default_folder)
+        self.receipt_list = []
+
+               # Define the CSV file name
+
+        # Initialize the receipt list
+        if os.path.exists(csv_filename):
+            print(f"Found existing CSV file: {csv_filename}. Loading receipts...")
+            self.receipt_list = load_receipts_from_csv(csv_filename)
+            print(f"Loaded {len(self.receipt_list)} receipts from the file.")
+        else:
+            print("No existing CSV file found. Starting with an empty receipt list.")
+            self.receipt_list = []
+
+    # Start monitoring the list and saving to CSV
+        start_receipt_monitor_thread(receipts=self.receipt_list, filename=csv_filename, interval=5)
+
+
 
 
         
@@ -84,8 +110,8 @@ class ReceiptViewer(QMainWindow):
         topLayout.addRow("YEAR:", self.year_input)
         topLayout.addRow("DATE:", self.date_input)
         topLayout.addRow("Amount after GSTQST:", self.amount)
-        topLayout.addRow("TVP/GST:", self.tax_GST)
-        topLayout.addRow("TVQ/QST:", self.tax_QST)
+        topLayout.addRow("TPS/GST(5%):", self.tax_GST)
+        topLayout.addRow("TVQ/QST(9.9%):", self.tax_QST)
         topLayout.addRow("DESC (NO SPACE): ", self.description_input)
 
         #############################################
@@ -176,8 +202,8 @@ class ReceiptViewer(QMainWindow):
         self.calc_button.clicked.connect(self.calculate_taxes)
         self.button_layout.addWidget(self.calc_button)
 
-        self.report_button = QPushButton("Generate Report")
-        self.report_button.clicked.connect(self.generate_report)
+        self.report_button = QPushButton("Add to CSV Report")
+        self.report_button.clicked.connect(self.add_to_CSV_report)
         self.button_layout.addWidget(self.report_button)
 
         optionCategoryLayout.addLayout(self.button_layout)
@@ -246,31 +272,64 @@ class ReceiptViewer(QMainWindow):
         except ValueError:
             return False
 
-    def generate_report(self):
+    def get_md5sum(self, file_path: str) -> str:
+        """
+        Computes the MD5 checksum of the specified file.
+
+        Args:
+            file_path (str): Path to the input file.
+
+        Returns:
+            str: The MD5 checksum as a hexadecimal string.
+        """
+        hash_md5 = hashlib.md5()
+        try:
+            with open(file_path, "rb") as f:
+                # Read the file in chunks to handle large files
+                for chunk in iter(lambda: f.read(4096), b""):
+                    hash_md5.update(chunk)
+            return hash_md5.hexdigest()
+        except FileNotFoundError:
+            return "File not found"
+        except Exception as e:
+            return f"Error: {e}"
+
+    def add_to_CSV_report(self):
         date = self.date_input.text()
         year = self.year_input.text()
-        description =  self.get_selected_desc_option()
+        receipt_time = year + date
         try:
             total_amount = float(self.amount.text())
             gst_text = self.tax_GST.text().strip()
             qst_text = self.tax_QST.text().strip()
-            gst = float(gst_text)
-            qst = float(qst_text)
+            input_gst = float(gst_text)
+            input_qst = float(qst_text)
         except ValueError:
             QMessageBox.warning(self, "Input Error", "Please enter a valid amount,GST,QST before generating the report.")
             return
 
-        file_path, _ = QFileDialog.getSaveFileName(self, "Save Report", "", "CSV Files (*.csv)")
+        try:
+            image_path = self.image_files[self.current_index]
+            _no_use, imagename = os.path.split(image_path)
 
-        if file_path:
-            try:
-                with open(file_path, mode="a", newline="") as file:
-                    writer = csv.writer(file)
-                    writer.writerow([year, date, description, total_amount, gst, qst])
+             # Add a new receipt to the list
+            update_receipt(
+                self.receipt_list,
+                date=receipt_time,
+                description =  self.get_selected_desc_option(),
+                amount_after_tax=total_amount,
+                gst=input_gst,
+                qst=input_qst,
+                paid_from_business=True,
+                category= self.get_selected_category_option(),
+                file_md5= self.get_md5sum(image_path), 
+                filename= os.path.basename(image_path)
+            )
 
-                QMessageBox.information(self, "Success", "Report generated successfully!")
-            except Exception as e:
-                QMessageBox.critical(self, "Error", f"Failed to save report: {str(e)}")
+            QMessageBox.information(self, "Success", "Report generated successfully!")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to save report: {str(e)}")
+
 
 
     def get_incremented_file_path(self, file_path):
@@ -365,6 +424,69 @@ class ReceiptViewer(QMainWindow):
         msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         response = msg_box.exec_()
         return response == QMessageBox.Yes
+
+        self.radio_computer = QRadioButton("Computer expenses")
+        self.radio_professional = QRadioButton("Professional fee")
+        self.radio_tele = QRadioButton("Tele communication")
+        self.radio_adver = QRadioButton("advertising & promotion")
+        self.radio_membership = QRadioButton("membership")
+        self.radio_registration = QRadioButton("registration fee")
+
+        self.radio_incorporation = QRadioButton("Incorporation cost")
+
+        self.radio_parking = QRadioButton("Parking")
+
+        self.radio_travel = QRadioButton("Business travel")
+
+        self.radio_office = QRadioButton("Office supplies")
+
+        self.radio_training = QRadioButton("Training")
+        self.radio_meals = QRadioButton("Meals & entertainment")
+        self.radio_soft = QRadioButton("Software")
+
+    def get_selected_category_option(self):
+
+        if self.radio_computer.isChecked():
+            return get_key_from_cts("Computer expenses")
+
+        elif self.radio_professional.isChecked():
+            return get_key_from_cts("Professional fee")
+
+        elif self.radio_tele.isChecked():
+            return get_key_from_cts("Tele communication")
+
+        elif self.radio_adver.isChecked():
+            return get_key_from_cts("advertising & promotion")
+
+        elif self.radio_membership.isChecked():
+            return get_key_from_cts("membership")
+
+        elif self.radio_registration.isChecked():
+            return get_key_from_cts("registration fee")
+
+        elif self.radio_incorporation.isChecked():
+            return get_key_from_cts("Incorporation cost")
+
+        elif self.radio_parking.isChecked():
+            return get_key_from_cts("Parking")
+
+        elif self.radio_travel.isChecked():
+            return get_key_from_cts("Business travel")
+
+        elif self.radio_office.isChecked():
+            return get_key_from_cts("Office supplies")
+
+        elif self.radio_training.isChecked():
+            return get_key_from_cts("Training")
+
+        elif self.radio_meals.isChecked():
+            return get_key_from_cts("Meals & entertainment")
+
+        elif self.radio_soft.isChecked():
+            return get_key_from_cts("Software")
+
+        return None
+
 
 
     def get_selected_desc_option(self):

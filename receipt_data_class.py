@@ -55,7 +55,7 @@ def load_receipts_from_csv(filename: str) -> List[Receipt]:
             receipts.append(receipt)
     return receipts
 
-def update_receipt(receipts: List[Receipt],**kwargs ) -> None:
+def update_receipt(receipts: List[Receipt], **kwargs ) -> None:
     input_receipt = Receipt(**kwargs)
     found = False
     for index, receipt in enumerate(receipts):
@@ -65,7 +65,7 @@ def update_receipt(receipts: List[Receipt],**kwargs ) -> None:
             found = True
 
     if not found:
-        add_receipt(receipts **kwargs)
+        add_receipt(receipts, **kwargs)
         print(f"update_receipt()>> This is a new receipt, added this new receipt item")
 
 
