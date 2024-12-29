@@ -7,15 +7,15 @@ from dataclasses import dataclass
 
 @dataclass
 class Receipt:
+    file_md5: str
     date: int
-    description: str
     amount_after_tax: float
     gst: float
     qst: float
-    paid_from_business: bool
+    payment_method: str
     category: str
-    file_md5: str
     filename: str
+    notice: str
 
 def add_receipt(receipts: List[Receipt], **kwargs) -> None:
     new_receipt = Receipt(**kwargs)
@@ -23,17 +23,17 @@ def add_receipt(receipts: List[Receipt], **kwargs) -> None:
 
 def save_receipts_to_csv(receipts: List[Receipt], filename: str) -> None:
     headers = [
-        "date", "description", "amount_after_tax", "gst", "qst",
-        "paid_from_business", "category", "file_md5", "filename"
+        "file_md5", "date",  "amount_after_tax", "gst", "qst",
+        "payment_method", "category", "filename", "notice"
     ]
     with open(filename, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
         writer.writerow(headers)
         for receipt in receipts:
             writer.writerow([
-                receipt.date, receipt.description, receipt.amount_after_tax,
-                receipt.gst, receipt.qst, receipt.paid_from_business,
-                receipt.category, receipt.file_md5, receipt.filename
+                receipt.file_md5, receipt.date, receipt.amount_after_tax,
+                receipt.gst, receipt.qst, receipt.payment_method,
+                receipt.category,  receipt.filename, receipt.notice
             ])
 
 def load_receipts_from_csv(filename: str) -> List[Receipt]:
@@ -42,15 +42,15 @@ def load_receipts_from_csv(filename: str) -> List[Receipt]:
         reader = csv.DictReader(file)
         for row in reader:
             receipt = Receipt(
+                file_md5=row['file_md5'],
                 date=int(row['date']),
-                description=row['description'],
                 amount_after_tax=float(row['amount_after_tax']),
                 gst=float(row['gst']),
                 qst=float(row['qst']),
-                paid_from_business=row['paid_from_business'].lower() == 'true',
+                payment_method=row['payment_method'],
                 category=row['category'],
-                file_md5=row['file_md5'],
-                filename=row['filename']
+                filename=row['filename'], 
+                notice=row['notice'], 
             )
             receipts.append(receipt)
     return receipts

@@ -364,15 +364,15 @@ class ReceiptViewer(QMainWindow):
              # Add a new receipt to the list
             update_receipt(
                 self.receipt_list,
+                file_md5= self.get_md5sum(image_path), 
                 date=receipt_time,
-                description =  self.get_selected_desc_option(),
                 amount_after_tax=total_amount,
                 gst=input_gst,
                 qst=input_qst,
-                paid_from_business=True,
+                payment_method="",
                 category= self.get_selected_category_option(),
-                file_md5= self.get_md5sum(image_path), 
-                filename= os.path.basename(image_path)
+                filename = os.path.basename(image_path),
+                notice = self.receipt_notice_edit.toPlainText()
             )
 
             QMessageBox.information(self, "Success", "Report generated successfully!")
@@ -465,10 +465,7 @@ class ReceiptViewer(QMainWindow):
             return
 
         # Get selected option
-        selected_desc_option = self.get_selected_desc_option()
-        if not selected_desc_option:
-            self.show_warning("Please select an option.")
-            return
+        desc_input = self.description_input.text().strip()
 
         image_path = self.image_files[self.current_index]
         _no_use, imagename = os.path.split(image_path)
@@ -476,7 +473,7 @@ class ReceiptViewer(QMainWindow):
 
         base_dir = os.path.dirname(image_path)
 
-        filename = f"{year}_{date}_{selected_desc_option.upper()}{image_ext}"
+        filename = f"{year}_{date}_{desc_input.upper()}{image_ext}"
 
         file_path = os.path.join(base_dir , filename)
         print(f"validate_and_process_input()>> :: file_path of required filename:  {file_path}")
@@ -726,6 +723,12 @@ class ReceiptViewer(QMainWindow):
         else:
             print("Category not found in predefined list.")
         
+    def extract_non_digit_info(filename):
+        # Regex pattern to match the non-digit info between date and extension
+        match = re.search(r'^\d{4}_\d{4}_(\D+?)(?:_\d+)?\.\w+$', filename)
+        if match:
+            return match.group(1)
+        return "" 
 
     def updateUI(self,  receipt: Receipt):
         if receipt:
@@ -734,10 +737,11 @@ class ReceiptViewer(QMainWindow):
             remaining = date_str[4:]
             self.year_input.setText(year) 
             self.date_input.setText(remaining)
+            self.description_input.setText(self.extract_non_digit_info(receipt.filename))
             self.amount.setText(str(receipt.amount_after_tax))
             self.tax_GST.setText(str(receipt.gst))
             self.tax_QST.setText(str(receipt.qst))
-            self.check_and_set_radio(receipt.description)
+            self.receipt_notice_edit.setText(str(receipt.notice))
             self.check_category_and_set_radio(get_cts_from_key(receipt.category))
         else:
             self.year_input.setText("2024") 
@@ -749,6 +753,7 @@ class ReceiptViewer(QMainWindow):
             self.radio_desc_unknown.setChecked(True)  # Set a default selection
             self.radio_unknown_bank.setChecked(True)
             self.clear_cts_radio_buttons()
+            self.receipt_notice_edit.setPlaceholderText("Type your receipt notice...")
 
     def updateUIWhenImageChanged(self):
          image_path = self.image_files[self.current_index]
