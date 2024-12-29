@@ -99,25 +99,19 @@ class ReceiptViewer(QMainWindow):
         self.year_input = QLineEdit()
         self.year_input.setText("2024") 
         self.date_input = QLineEdit()
-        self.amount = QLineEdit()
-        self.tax_GST = QLineEdit()
-        self.tax_QST = QLineEdit()
         self.description_input = QLineEdit("EX. Restaurant")
 
 
-
-        topLayout = QFormLayout()
-        topLayout.addRow("YEAR:", self.year_input)
-        topLayout.addRow("DATE:", self.date_input)
-        topLayout.addRow("Amount after GSTQST:", self.amount)
-        topLayout.addRow("TPS/GST(5%):", self.tax_GST)
-        topLayout.addRow("TVQ/QST(9.9%):", self.tax_QST)
-        topLayout.addRow("DESC (NO SPACE): ", self.description_input)
+        self.fileInfo_group = QGroupBox("File Info")
+        fileInfoLayout = QFormLayout()
+        fileInfoLayout.addRow("YEAR:", self.year_input)
+        fileInfoLayout.addRow("DATE:", self.date_input)
+        fileInfoLayout.addRow("DESC (NO SPACE): ", self.description_input)
+        self.fileInfo_group.setLayout(fileInfoLayout)
 
         #############################################
         # Description Option group with radio buttons
         self.desc_option_group = QButtonGroup(self)
-
         self.radio_swimming = QRadioButton("Swimming")
         self.radio_walmart = QRadioButton("Walmart")
         self.radio_gas = QRadioButton("Gas")
@@ -125,6 +119,19 @@ class ReceiptViewer(QMainWindow):
         self.radio_hotel = QRadioButton("Hotel")
         self.radio_desc_unknown = QRadioButton("Unknown")
         self.radio_from_input = QRadioButton("From recepit description")
+
+        self.amount = QLineEdit()
+        self.tax_GST = QLineEdit()
+        self.tax_QST = QLineEdit()
+
+        
+        self.taxInfo_group = QGroupBox("Tax Info")
+        taxInfoLayout = QFormLayout()
+        taxInfoLayout.addRow("Amount after GSTQST:", self.amount)
+        taxInfoLayout.addRow("TPS/GST(5%):", self.tax_GST)
+        taxInfoLayout.addRow("TVQ/QST(9.9%):", self.tax_QST)
+        self.taxInfo_group.setLayout(taxInfoLayout)
+
 
         self.desc_option_group.addButton(self.radio_swimming)
         self.desc_option_group.addButton(self.radio_gas)
@@ -144,6 +151,8 @@ class ReceiptViewer(QMainWindow):
         optionDescLayout.addWidget(self.radio_walmart)
         optionDescLayout.addWidget(self.radio_from_input)
         optionDescLayout.addWidget(self.radio_desc_unknown)
+
+
 
         #############################################
         ############   CATEGORY OPTION ##############
@@ -165,7 +174,7 @@ class ReceiptViewer(QMainWindow):
         self.radio_car_expense = QRadioButton("Expense auto [C14]")
         self.radio_cts_unknown = QRadioButton("Unknown [ERROR]")
 
-        self.csv_report_group = QGroupBox("CSV Report")
+        self.category_group = QGroupBox("Categories")
         optionCategoryLayout = QVBoxLayout()
         optionCategoryLayout.addWidget(self.radio_computer)
         optionCategoryLayout.addWidget(self.radio_professional)
@@ -193,32 +202,51 @@ class ReceiptViewer(QMainWindow):
         self.rename_file_button = QPushButton("Rename File")
         self.rename_file_button.clicked.connect(self.validate_and_process_input)
 
-        outerLayout = QVBoxLayout()
-        outerLayout.addLayout(topLayout)
-        outerLayout.addLayout(optionDescLayout)
+        #############################################
+        # Bank card Option group with radio buttons
+        self.bank_card_option_group = QButtonGroup(self)
+        self.radio_buisnisse_chequing = QRadioButton("Business chequing Account")
+        self.radio_buisnisse_credit = QRadioButton("Business Mastercard")
+        self.radio_personal_bank = QRadioButton("Personal Bank")
+        self.radio_unknown_bank = QRadioButton("Unknown Bank info")
+        self.bank_card_option_group.addButton(self.radio_buisnisse_chequing)
+        self.bank_card_option_group.addButton(self.radio_buisnisse_credit)
+        self.bank_card_option_group.addButton(self.radio_personal_bank)
+        self.bank_card_option_group.addButton(self.radio_unknown_bank)
 
-        #outerLayout.addWidget(self.rename_file_button)
 
-        #self.category_label = QLabel("CSV Report Category")
-        #outerLayout.addWidget(self.category_label)
-        self.button_layout = QHBoxLayout()
+        self.bank_group = QGroupBox("Bank")
+        optionBankLayout = QVBoxLayout()
+        optionBankLayout.addWidget(self.radio_buisnisse_chequing)
+        optionBankLayout.addWidget(self.radio_buisnisse_credit)
+        optionBankLayout.addWidget(self.radio_personal_bank)
+        optionBankLayout.addWidget(self.radio_unknown_bank)
+        self.bank_group.setLayout(optionBankLayout)
+
+
+        rightOuterLayout = QVBoxLayout()
+        rightOuterLayout.addWidget(self.fileInfo_group)
+        rightOuterLayout.addLayout(optionDescLayout)
+        rightOuterLayout.addWidget(self.taxInfo_group)
+
+
         self.calc_button = QPushButton("Calculate Taxes")
         self.calc_button.clicked.connect(self.calculate_taxes)
-        self.button_layout.addWidget(self.calc_button)
 
         self.report_button = QPushButton("Rename and Report")
         self.report_button.clicked.connect(self.add_to_CSV_report)
-        self.button_layout.addWidget(self.report_button)
-
-        optionCategoryLayout.addLayout(self.button_layout)
-
-
-        self.csv_report_group.setLayout(optionCategoryLayout)
-        outerLayout.addWidget(self.csv_report_group)
 
 
 
-        self.control_buttons_widget_container.setLayout(outerLayout)
+        self.category_group.setLayout(optionCategoryLayout)
+
+        rightOuterLayout.addWidget(self.category_group)
+        rightOuterLayout.addWidget(self.bank_group)
+        rightOuterLayout.addWidget(self.report_button)
+
+
+
+        self.control_buttons_widget_container.setLayout(rightOuterLayout)
 
 
 
@@ -704,6 +732,7 @@ class ReceiptViewer(QMainWindow):
             self.tax_QST.clear()
             self.description_input.setText("EX. Restaurant")
             self.radio_desc_unknown.setChecked(True)  # Set a default selection
+            self.radio_unknown_bank.setChecked(True)
             self.clear_cts_radio_buttons()
 
     def updateUIWhenImageChanged(self):
