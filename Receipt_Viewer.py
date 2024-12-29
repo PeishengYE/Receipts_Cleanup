@@ -155,6 +155,9 @@ class ReceiptViewer(QMainWindow):
         #############################################
         self.taxInfo_group = QGroupBox("Tax Info")
 
+        self.calc_button = QPushButton("Reverse Calculate")
+        self.calc_button.clicked.connect(self.calculate_taxes)
+
         self.amount = QLineEdit()
         self.tax_GST = QLineEdit()
         self.tax_QST = QLineEdit()
@@ -163,6 +166,7 @@ class ReceiptViewer(QMainWindow):
         taxInfoLayout.addRow("Amount after GSTQST:", self.amount)
         taxInfoLayout.addRow("TPS/GST(5%):", self.tax_GST)
         taxInfoLayout.addRow("TVQ/QST(9.9%):", self.tax_QST)
+        taxInfoLayout.addRow("Tax calculator", self.calc_button)
         self.taxInfo_group.setLayout(taxInfoLayout)
 
 
@@ -243,8 +247,6 @@ class ReceiptViewer(QMainWindow):
         rightOuterLayout.addWidget(self.noticeInfo_group)
 
 
-        self.calc_button = QPushButton("Calculate Taxes")
-        self.calc_button.clicked.connect(self.calculate_taxes)
 
         self.report_button = QPushButton("Rename and Report")
         self.report_button.clicked.connect(self.add_to_CSV_report)
