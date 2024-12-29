@@ -12,7 +12,8 @@ expense_categories = {
     "C10": "Office supplies",
     "C11": "Training",
     "C12": "Meals & entertainment",
-    "C13": "Software"
+    "C13": "Software", 
+    "C14": "Expense auto"
 }
 
 def get_cts_from_key( key: str) -> str:
@@ -45,11 +46,11 @@ def get_key_from_cts( category: str) -> str:
     return "Value not found"
 
 # Test the dictionary and functions
-print(get_cts_from_key("C1"))  # Output: Computer expenses
-print(get_cts_from_key("C9"))  # Output: Business travel
-print(get_cts_from_key("C20"))  # Output: Key not found
+#print(get_cts_from_key("C1"))  # Output: Computer expenses
+#print(get_cts_from_key("C9"))  # Output: Business travel
+#print(get_cts_from_key("C20"))  # Output: Key not found
 
 #print(get_key_from_value(expense_categories, "Software"))  # Output: C13
-print(get_key_from_cts("Tele communication"))  # Output: C3
-print(get_key_from_cts("Unknown Category"))  # Output: Value not found
+#print(get_key_from_cts("Tele communication"))  # Output: C3
+#print(get_key_from_cts("Unknown Category"))  # Output: Value not found
 

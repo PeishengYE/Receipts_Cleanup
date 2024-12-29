@@ -162,6 +162,7 @@ class ReceiptViewer(QMainWindow):
         self.radio_training = QRadioButton("Training [C11]")
         self.radio_meals = QRadioButton("Meals & entertainment [C12]")
         self.radio_soft = QRadioButton("Software [C13]")
+        self.radio_car_expense = QRadioButton("Expense auto [C14]")
         self.radio_cts_unknown = QRadioButton("Unknown [ERROR]")
 
         self.csv_report_group = QGroupBox("CSV Report")
@@ -179,6 +180,7 @@ class ReceiptViewer(QMainWindow):
         optionCategoryLayout.addWidget(self.radio_training)
         optionCategoryLayout.addWidget(self.radio_meals)
         optionCategoryLayout.addWidget(self.radio_soft)
+        optionCategoryLayout.addWidget(self.radio_car_expense)
         optionCategoryLayout.addWidget(self.radio_cts_unknown)
 
 
@@ -499,6 +501,9 @@ class ReceiptViewer(QMainWindow):
         elif self.radio_soft.isChecked():
             return get_key_from_cts("Software")
 
+        elif self.radio_car_expense.isChecked():
+            return get_key_from_cts("Expense auto")
+
         return None
 
 
@@ -650,7 +655,8 @@ class ReceiptViewer(QMainWindow):
             "Office supplies",
             "Training",
             "Meals & entertainment",
-            "Software"
+            "Software",
+            "Expense auto"
         ]
         
         radio_buttons = [
@@ -666,7 +672,8 @@ class ReceiptViewer(QMainWindow):
             self.radio_office,
             self.radio_training,
             self.radio_meals,
-            self.radio_soft
+            self.radio_soft,
+            self.radio_car_expense
         ]
 
         # Check if input string matches a category
