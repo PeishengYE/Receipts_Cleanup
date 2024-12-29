@@ -5,7 +5,7 @@ import re
 import hashlib
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QLineEdit, QWidget, QFileDialog, QMenuBar, QCheckBox,
- QFormLayout, QMessageBox, QRadioButton, QButtonGroup,QGroupBox 
+ QFormLayout, QMessageBox, QRadioButton, QButtonGroup,QGroupBox , QTextEdit
 )
 from PyQt5.QtGui import QPixmap, QImageReader, QMouseEvent
 from PyQt5.QtCore import Qt, QPoint
@@ -102,7 +102,7 @@ class ReceiptViewer(QMainWindow):
         self.description_input = QLineEdit("EX. Restaurant")
 
 
-        self.fileInfo_group = QGroupBox("File Info")
+        self.fileInfo_group = QGroupBox("Filename Info")
         fileInfoLayout = QFormLayout()
         fileInfoLayout.addRow("YEAR:", self.year_input)
         fileInfoLayout.addRow("DATE:", self.date_input)
@@ -120,19 +120,7 @@ class ReceiptViewer(QMainWindow):
         self.radio_desc_unknown = QRadioButton("Unknown")
         self.radio_from_input = QRadioButton("From recepit description")
 
-        self.amount = QLineEdit()
-        self.tax_GST = QLineEdit()
-        self.tax_QST = QLineEdit()
-
         
-        self.taxInfo_group = QGroupBox("Tax Info")
-        taxInfoLayout = QFormLayout()
-        taxInfoLayout.addRow("Amount after GSTQST:", self.amount)
-        taxInfoLayout.addRow("TPS/GST(5%):", self.tax_GST)
-        taxInfoLayout.addRow("TVQ/QST(9.9%):", self.tax_QST)
-        self.taxInfo_group.setLayout(taxInfoLayout)
-
-
         self.desc_option_group.addButton(self.radio_swimming)
         self.desc_option_group.addButton(self.radio_gas)
         self.desc_option_group.addButton(self.radio_costco)
@@ -151,6 +139,31 @@ class ReceiptViewer(QMainWindow):
         optionDescLayout.addWidget(self.radio_walmart)
         optionDescLayout.addWidget(self.radio_from_input)
         optionDescLayout.addWidget(self.radio_desc_unknown)
+        #############################################
+        ############   NOTICE INFO     ##############
+        #############################################
+        self.noticeInfo_group = QGroupBox("Notice Info")
+        noticeLayout = QVBoxLayout()
+        self.receipt_notice_edit = QTextEdit()
+        self.receipt_notice_edit.setPlaceholderText("Type your receipt notice...")
+        noticeLayout.addWidget(self.receipt_notice_edit)
+        self.noticeInfo_group.setLayout(noticeLayout)
+
+
+        #############################################
+        ############   TAX INFO OPTION ##############
+        #############################################
+        self.taxInfo_group = QGroupBox("Tax Info")
+
+        self.amount = QLineEdit()
+        self.tax_GST = QLineEdit()
+        self.tax_QST = QLineEdit()
+
+        taxInfoLayout = QFormLayout()
+        taxInfoLayout.addRow("Amount after GSTQST:", self.amount)
+        taxInfoLayout.addRow("TPS/GST(5%):", self.tax_GST)
+        taxInfoLayout.addRow("TVQ/QST(9.9%):", self.tax_QST)
+        self.taxInfo_group.setLayout(taxInfoLayout)
 
 
 
@@ -226,8 +239,8 @@ class ReceiptViewer(QMainWindow):
 
         rightOuterLayout = QVBoxLayout()
         rightOuterLayout.addWidget(self.fileInfo_group)
-        rightOuterLayout.addLayout(optionDescLayout)
         rightOuterLayout.addWidget(self.taxInfo_group)
+        rightOuterLayout.addWidget(self.noticeInfo_group)
 
 
         self.calc_button = QPushButton("Calculate Taxes")
