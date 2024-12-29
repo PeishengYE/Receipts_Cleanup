@@ -89,7 +89,7 @@ class ReceiptViewer(QMainWindow):
         self.rename_input = QLineEdit()
         self.rename_input.setPlaceholderText("Enter description")
         self.rename_button = QPushButton("OK")
-        self.rename_button.clicked.connect(self.rename_and_next)
+        self.rename_button.clicked.connect(self.rename_file)
 
         self.control_buttons_widget_container = QWidget(self)
 
@@ -123,7 +123,7 @@ class ReceiptViewer(QMainWindow):
         self.radio_gas = QRadioButton("Gas")
         self.radio_costco = QRadioButton("Costco")
         self.radio_hotel = QRadioButton("Hotel")
-        self.radio_unknown = QRadioButton("Unknown")
+        self.radio_desc_unknown = QRadioButton("Unknown")
         self.radio_from_input = QRadioButton("From recepit description")
 
         self.desc_option_group.addButton(self.radio_swimming)
@@ -132,7 +132,7 @@ class ReceiptViewer(QMainWindow):
         self.desc_option_group.addButton(self.radio_hotel)
         self.desc_option_group.addButton(self.radio_walmart)
         self.desc_option_group.addButton(self.radio_from_input)
-        self.desc_option_group.addButton(self.radio_unknown)
+        self.desc_option_group.addButton(self.radio_desc_unknown)
 
         self.radio_from_input.setChecked(True)  # Set a default selection
 
@@ -143,25 +143,26 @@ class ReceiptViewer(QMainWindow):
         optionDescLayout.addWidget(self.radio_hotel)
         optionDescLayout.addWidget(self.radio_walmart)
         optionDescLayout.addWidget(self.radio_from_input)
-        optionDescLayout.addWidget(self.radio_unknown)
+        optionDescLayout.addWidget(self.radio_desc_unknown)
 
         #############################################
         ############   CATEGORY OPTION ##############
         #############################################
         self.category_option_group = QButtonGroup(self)
-        self.radio_computer = QRadioButton("Computer expenses")
-        self.radio_professional = QRadioButton("Professional fee")
-        self.radio_tele = QRadioButton("Tele communication")
-        self.radio_adver = QRadioButton("advertising & promotion")
-        self.radio_membership = QRadioButton("membership")
-        self.radio_registration = QRadioButton("registration fee")
-        self.radio_incorporation = QRadioButton("Incorporation cost")
-        self.radio_parking = QRadioButton("Parking")
-        self.radio_travel = QRadioButton("Business travel")
-        self.radio_office = QRadioButton("Office supplies")
-        self.radio_training = QRadioButton("Training")
-        self.radio_meals = QRadioButton("Meals & entertainment")
-        self.radio_soft = QRadioButton("Software")
+        self.radio_computer = QRadioButton("Computer expenses [C1]")
+        self.radio_professional = QRadioButton("Professional fee [C2]")
+        self.radio_tele = QRadioButton("Tele communication [C3]")
+        self.radio_adver = QRadioButton("advertising & promotion [C4]")
+        self.radio_membership = QRadioButton("membership [C5]")
+        self.radio_registration = QRadioButton("registration fee [C6]")
+        self.radio_incorporation = QRadioButton("Incorporation cost [C7]")
+        self.radio_parking = QRadioButton("Parking [C8]")
+        self.radio_travel = QRadioButton("Business travel [C9]")
+        self.radio_office = QRadioButton("Office supplies [C10]")
+        self.radio_training = QRadioButton("Training [C11]")
+        self.radio_meals = QRadioButton("Meals & entertainment [C12]")
+        self.radio_soft = QRadioButton("Software [C13]")
+        self.radio_cts_unknown = QRadioButton("Unknown [ERROR]")
 
         self.csv_report_group = QGroupBox("CSV Report")
         optionCategoryLayout = QVBoxLayout()
@@ -178,6 +179,7 @@ class ReceiptViewer(QMainWindow):
         optionCategoryLayout.addWidget(self.radio_training)
         optionCategoryLayout.addWidget(self.radio_meals)
         optionCategoryLayout.addWidget(self.radio_soft)
+        optionCategoryLayout.addWidget(self.radio_cts_unknown)
 
 
 
@@ -193,7 +195,7 @@ class ReceiptViewer(QMainWindow):
         outerLayout.addLayout(topLayout)
         outerLayout.addLayout(optionDescLayout)
 
-        outerLayout.addWidget(self.rename_file_button)
+        #outerLayout.addWidget(self.rename_file_button)
 
         #self.category_label = QLabel("CSV Report Category")
         #outerLayout.addWidget(self.category_label)
@@ -202,7 +204,7 @@ class ReceiptViewer(QMainWindow):
         self.calc_button.clicked.connect(self.calculate_taxes)
         self.button_layout.addWidget(self.calc_button)
 
-        self.report_button = QPushButton("Add to CSV Report")
+        self.report_button = QPushButton("Rename and Report")
         self.report_button.clicked.connect(self.add_to_CSV_report)
         self.button_layout.addWidget(self.report_button)
 
@@ -295,6 +297,8 @@ class ReceiptViewer(QMainWindow):
             return f"Error: {e}"
 
     def add_to_CSV_report(self):
+
+        self.validate_and_process_input()
         date = self.date_input.text()
         year = self.year_input.text()
         receipt_time = year + date
@@ -348,7 +352,7 @@ class ReceiptViewer(QMainWindow):
             self.radio_gas,
             self.radio_costco,
             self.radio_hotel,
-            self.radio_unknown
+            self.radio_desc_unknown
         ]
 
         # Check if input string matches an option
@@ -440,7 +444,7 @@ class ReceiptViewer(QMainWindow):
         confirmed = self.show_confirmation_dialog(filename)
         if confirmed:
             print("Great! Let's rename it")
-            self.rename_and_next(filename)
+            self.rename_file(filename)
         else:
             print("No change")
 
@@ -453,25 +457,7 @@ class ReceiptViewer(QMainWindow):
         response = msg_box.exec_()
         return response == QMessageBox.Yes
 
-        self.radio_computer = QRadioButton("Computer expenses")
-        self.radio_professional = QRadioButton("Professional fee")
-        self.radio_tele = QRadioButton("Tele communication")
-        self.radio_adver = QRadioButton("advertising & promotion")
-        self.radio_membership = QRadioButton("membership")
-        self.radio_registration = QRadioButton("registration fee")
-
-        self.radio_incorporation = QRadioButton("Incorporation cost")
-
-        self.radio_parking = QRadioButton("Parking")
-
-        self.radio_travel = QRadioButton("Business travel")
-
-        self.radio_office = QRadioButton("Office supplies")
-
-        self.radio_training = QRadioButton("Training")
-        self.radio_meals = QRadioButton("Meals & entertainment")
-        self.radio_soft = QRadioButton("Software")
-
+  
     def get_selected_category_option(self):
 
         if self.radio_computer.isChecked():
@@ -531,7 +517,7 @@ class ReceiptViewer(QMainWindow):
         elif self.radio_from_input.isChecked():
             desc_input = self.description_input.text().strip()
             return desc_input
-        elif self.radio_unknown.isChecked():
+        elif self.radio_desc_unknown.isChecked():
             return "Unknown"
         return None
 
@@ -637,6 +623,60 @@ class ReceiptViewer(QMainWindow):
         self.image_label.setAlignment(Qt.AlignCenter)
         self.image_label.move(self.pan_offset)
 
+    def clear_cts_radio_buttons(self) -> None:
+        print("clear_cts_radio_buttons()>> ")
+        self.radio_cts_unknown.setChecked(True)  # Check the corresponding radio button
+       
+    def check_category_and_set_radio(self, input_string: str) -> None:
+        """
+        Checks if the input string matches an element in a predefined list of categories.
+        If found, selects the corresponding radio button.
+
+        Args:
+            input_string (str): The input string to check.
+            self: The object containing the radio buttons.
+        """
+        # Predefined list of categories and corresponding radio buttons
+        categories = [
+            "Computer expenses",
+            "Professional fee",
+            "Tele communication",
+            "advertising & promotion",
+            "membership",
+            "registration fee",
+            "Incorporation cost",
+            "Parking",
+            "Business travel",
+            "Office supplies",
+            "Training",
+            "Meals & entertainment",
+            "Software"
+        ]
+        
+        radio_buttons = [
+            self.radio_computer,
+            self.radio_professional,
+            self.radio_tele,
+            self.radio_adver,
+            self.radio_membership,
+            self.radio_registration,
+            self.radio_incorporation,
+            self.radio_parking,
+            self.radio_travel,
+            self.radio_office,
+            self.radio_training,
+            self.radio_meals,
+            self.radio_soft
+        ]
+
+        # Check if input string matches a category
+        if input_string in categories:
+            index = categories.index(input_string)
+            radio_buttons[index].setChecked(True)  # Check the corresponding radio button
+        else:
+            print("Category not found in predefined list.")
+        
+
     def updateUI(self,  receipt: Receipt):
         if receipt:
             date_str = str(receipt.date)
@@ -648,15 +688,16 @@ class ReceiptViewer(QMainWindow):
             self.tax_GST.setText(str(receipt.gst))
             self.tax_QST.setText(str(receipt.qst))
             self.check_and_set_radio(receipt.description)
+            self.check_category_and_set_radio(get_cts_from_key(receipt.category))
         else:
-            self.year_input.clear() 
+            self.year_input.setText("2024") 
             self.date_input.clear()
             self.amount.clear()
             self.tax_GST.clear()
             self.tax_QST.clear()
             self.description_input.setText("EX. Restaurant")
-            self.radio_unknown.setChecked(True)  # Set a default selection
-
+            self.radio_desc_unknown.setChecked(True)  # Set a default selection
+            self.clear_cts_radio_buttons()
 
     def updateUIWhenImageChanged(self):
          image_path = self.image_files[self.current_index]
@@ -690,7 +731,7 @@ class ReceiptViewer(QMainWindow):
             self.updateUIWhenImageChanged()
 
 
-    def rename_and_next(self, new_filename):
+    def rename_file(self, new_filename):
 
         current_path = self.image_files[self.current_index]
         print(f"current_filename {current_path}")
@@ -706,12 +747,12 @@ class ReceiptViewer(QMainWindow):
             self.image_files[self.current_index] = new_path
 
             # clear inputs
-            self.year_input.setText("2024") 
-            self.date_input.clear()
-            self.amount.clear()
-            self.radio_unknown.setChecked(True)  # Set a default selection
+            #self.year_input.setText("2024") 
+            #self.date_input.clear()
+            #self.amount.clear()
+            #self.radio_desc_unknown.setChecked(True)  # Set a default selection
 
-            self.show_next_image()
+            #self.show_next_image()
         except Exception as e:
             print(f"Error renaming file: {e}")
 
