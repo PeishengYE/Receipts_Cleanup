@@ -16,6 +16,22 @@ expense_categories = {
     "C14": "Expense auto"
 }
 
+payment_methods = {
+    "P1": "Business chequing Account",
+    "P2": "Business Mastercard",
+    "P3": "Personal Bank",
+    "P4": "Unknown Bank info"
+}
+def get_payment_from_key( key: str) -> str:
+    return payment_methods.get(key, "Key not found")
+ 
+def get_key_from_payment( payment: str) -> str:
+    for k, v in payment_methods.items():
+        if v.lower() == payment.lower():  # Case-insensitive comparison
+            return k
+    return "Value not found"
+
+
 def get_cts_from_key( key: str) -> str:
     """
     Retrieve the value corresponding to a given key in the dictionary.

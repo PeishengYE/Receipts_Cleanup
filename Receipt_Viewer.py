@@ -13,7 +13,7 @@ from receipt_data_class import (
     Receipt, add_receipt, load_receipts_from_csv, update_receipt, start_receipt_monitor_thread,  get_receipt_by_file_md5
 )
 from category_dictionary import (
-        get_cts_from_key, get_key_from_cts
+        get_cts_from_key, get_key_from_cts, get_payment_from_key, get_key_from_payment
     )
 
 
@@ -222,10 +222,10 @@ class ReceiptViewer(QMainWindow):
         #############################################
         # Bank card Option group with radio buttons
         self.bank_card_option_group = QButtonGroup(self)
-        self.radio_buisnisse_chequing = QRadioButton("Business chequing Account")
-        self.radio_buisnisse_credit = QRadioButton("Business Mastercard")
-        self.radio_personal_bank = QRadioButton("Personal Bank")
-        self.radio_unknown_bank = QRadioButton("Unknown Bank info")
+        self.radio_buisnisse_chequing = QRadioButton("Business chequing Account [P1]")
+        self.radio_buisnisse_credit = QRadioButton("Business Mastercard [P2]")
+        self.radio_personal_bank = QRadioButton("Personal Bank [P3]")
+        self.radio_unknown_bank = QRadioButton("Unknown Bank info [P4]")
         self.bank_card_option_group.addButton(self.radio_buisnisse_chequing)
         self.bank_card_option_group.addButton(self.radio_buisnisse_credit)
         self.bank_card_option_group.addButton(self.radio_personal_bank)
@@ -369,7 +369,7 @@ class ReceiptViewer(QMainWindow):
                 amount_after_tax=total_amount,
                 gst=input_gst,
                 qst=input_qst,
-                payment_method="",
+                payment_method= self.get_selected_payment_option(),
                 category= self.get_selected_category_option(),
                 filename = os.path.basename(image_path),
                 notice = self.receipt_notice_edit.toPlainText()
@@ -498,6 +498,19 @@ class ReceiptViewer(QMainWindow):
         msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         response = msg_box.exec_()
         return response == QMessageBox.Yes
+
+    def get_selected_payment_option(self):
+        if self.radio_buisnisse_chequing.isChecked():
+            return get_key_from_payment("Business chequing Account")
+
+        elif self.radio_buisnisse_credit.isChecked():
+            return get_key_from_payment("Business Mastercard")
+
+        elif self.radio_personal_bank.isChecked():
+            return get_key_from_payment("Personal Bank")
+        else:
+            return get_key_from_payment("Unknown Bank info")
+
 
   
     def get_selected_category_option(self):
@@ -672,6 +685,31 @@ class ReceiptViewer(QMainWindow):
         print("clear_cts_radio_buttons()>> ")
         self.radio_cts_unknown.setChecked(True)  # Check the corresponding radio button
        
+
+    def check_payment_and_set_radio(self, input_string: str) -> None:
+        # Predefined list of categories and corresponding radio buttons
+        payments = [
+           "Business chequing Account",
+           "Business Mastercard",
+           "Personal Bank",
+           "Unknown Bank info"
+        ]
+        
+        radio_buttons = [
+            self.radio_buisnisse_chequing, 
+            self.radio_buisnisse_credit, 
+            self.radio_personal_bank, 
+            self.radio_unknown_bank 
+        ]
+
+        # Check if input string matches a category
+        if input_string in payments:
+            index = payments.index(input_string)
+            radio_buttons[index].setChecked(True)  # Check the corresponding radio button
+        else:
+            radio_buttons[3].setChecked(True)  # Check the corresponding radio button
+            print("Payment not found in predefined list. check unknown")
+
     def check_category_and_set_radio(self, input_string: str) -> None:
         """
         Checks if the input string matches an element in a predefined list of categories.
@@ -723,7 +761,7 @@ class ReceiptViewer(QMainWindow):
         else:
             print("Category not found in predefined list.")
         
-    def extract_non_digit_info(filename):
+    def extract_non_digit_info(self, filename):
         # Regex pattern to match the non-digit info between date and extension
         match = re.search(r'^\d{4}_\d{4}_(\D+?)(?:_\d+)?\.\w+$', filename)
         if match:
@@ -732,17 +770,19 @@ class ReceiptViewer(QMainWindow):
 
     def updateUI(self,  receipt: Receipt):
         if receipt:
+            desc = self.extract_non_digit_info(receipt.filename)
             date_str = str(receipt.date)
             year = date_str[:4]
             remaining = date_str[4:]
             self.year_input.setText(year) 
             self.date_input.setText(remaining)
-            self.description_input.setText(self.extract_non_digit_info(receipt.filename))
+            self.description_input.setText(desc)
             self.amount.setText(str(receipt.amount_after_tax))
             self.tax_GST.setText(str(receipt.gst))
             self.tax_QST.setText(str(receipt.qst))
             self.receipt_notice_edit.setText(str(receipt.notice))
             self.check_category_and_set_radio(get_cts_from_key(receipt.category))
+            self.check_payment_and_set_radio(get_payment_from_key(receipt.payment_method))
         else:
             self.year_input.setText("2024") 
             self.date_input.clear()
@@ -753,7 +793,7 @@ class ReceiptViewer(QMainWindow):
             self.radio_desc_unknown.setChecked(True)  # Set a default selection
             self.radio_unknown_bank.setChecked(True)
             self.clear_cts_radio_buttons()
-            self.receipt_notice_edit.setPlaceholderText("Type your receipt notice...")
+            self.receipt_notice_edit.setText("")
 
     def updateUIWhenImageChanged(self):
          image_path = self.image_files[self.current_index]
